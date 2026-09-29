@@ -180,8 +180,10 @@ def _position_suggestions(page, pno: int, w: float, h: float) -> list[dict]:
         line_words = [x for x in words[max(0, i - 6) : i] if abs(x["top"] - wd["top"]) < 3]
         before = " ".join(x["text"] for x in line_words)
         prefix = wd["text"][: m.start()]
-        label_src = (before + " " + prefix).strip()
-        label = label_src.split(":")[-2].split()[-1] if label_src.count(":") >= 1 and label_src.split(":")[-2].split() else (line_words[-1]["text"] if line_words else "")
+        line_text = (before + " " + prefix).strip()
+        from app.services.fields import _label_before
+
+        label, _ = _label_before(line_text, len(line_text))
         label = label.strip(":： ")[:40] or "빈칸"
         x0 = wd["x0"] + (wd["x1"] - wd["x0"]) * (m.start() / max(len(wd["text"]), 1))
         x1 = wd["x0"] + (wd["x1"] - wd["x0"]) * (m.end() / max(len(wd["text"]), 1))
@@ -278,7 +280,7 @@ def _flatten_pdf(source_pdf: bytes, fields: list[FieldSpec], sig_images: dict[st
                     item["size"] = max(min(p.h * h * 0.62, 14), 7)
                 items.append(item)
             overlay_html = _jinja.get_template("overlay.html").render(w=w, h=h, items=items)
-            overlay = PdfReader(io.BytesIO(html_to_pdf(overlay_html, width=f"{w}pt", height=f"{h}pt")))
+            overlay = PdfReader(io.BytesIO(html_to_pdf(overlay_html, width=f"{w / 72:.5f}in", height=f"{h / 72:.5f}in")))
             page.merge_page(overlay.pages[0])
         writer.add_page(page)
     sign_pdf = PdfReader(io.BytesIO(html_to_pdf(_jinja.get_template("standalone.html").render(body=sign_html))))

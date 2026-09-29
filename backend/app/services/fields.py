@@ -116,6 +116,8 @@ _BRACKET = re.compile(r"\[\s{2,}\]")
 _UNDERSCORE = re.compile(r"_{3,}")
 _CHECKBOX = re.compile(r"[□☐]\s*([^\n□☐]{1,40})")
 _SEAL = re.compile(r"\((?:인|서명)\)")
+_EMPTY_AFTER_COLON = re.compile(r"^\s*([^:：\n_]{1,20}?)\s*[:：](\s*_*\s*)$")
+_EMPTY_DATE = re.compile(r"(\s*_*\s*년\s+_*\s*월\s+_*\s*일)\s*$")
 
 
 def _label_before(line: str, col: int) -> tuple[str, str]:
@@ -129,7 +131,7 @@ def _label_before(line: str, col: int) -> tuple[str, str]:
         return label, before[idx + 1 :]
     # '채권자 _____' 처럼 콜론 없이 바로 이어지는 경우
     words = before.strip().split()
-    if words and len(words[-1]) <= 12 and not words[-1].endswith(("_", "]")):
+    if words and 2 <= len(words[-1]) <= 12 and not words[-1].endswith(("_", "]", "은", "는", "을", "를", "에게", "와", "과")):
         return words[-1].strip("·-"), ""
     return "", ""
 
@@ -243,6 +245,20 @@ def suggest_fields(text: str, existing_labels: set[str] | None = None) -> list[S
         for m in _CHECKBOX.finditer(line):
             if free(m.start(), m.end()):
                 add(m.start(), m.end(), m.group(1).strip()[:40], "CHECKBOX", 0.8, "□ 체크 표시라 체크박스로 추천했어요.")
+        # 스캔(OCR) 문서: 밑줄이 인식되지 않아 '라벨:' 뒤가 비어 있는 경우
+        m = _EMPTY_AFTER_COLON.match(line)
+        nxt = next((ln.strip() for ln in lines[i + 1 :] if ln.strip()), "")
+        header_of_blanks = bool(nxt) and set(nxt) <= {"_", " "}
+        if m and not taken and not header_of_blanks:
+            label = m.group(1).strip()
+            g = m.group(2)
+            st = m.start(2) + (len(g) - len(g.lstrip()))
+            add(st, m.end(2), label, infer_type(label), 0.6, "'라벨:' 뒤가 비어 있어 빈칸으로 추천했어요. (스캔 문서)")
+        m = _EMPTY_DATE.search(line)
+        if m and free(m.start(1), m.end(1)):
+            label, _ = _label_before(line, m.start(1))
+            label = label or line[: m.start(1)].strip().rstrip(":： ")[:40]
+            add(m.start(1), m.end(1), label or "날짜", "DATE", 0.6, "'년 월 일' 자리가 비어 있어 날짜로 추천했어요.")
 
         if stripped.endswith((":", "：")):
             last_label = stripped.rstrip(":： ")[:40]
@@ -261,7 +277,10 @@ def apply_suggestions(text: str, suggestions: list[Suggestion]) -> str:
     for s in sorted(suggestions, key=lambda s: s.start, reverse=True):
         if text[s.start : s.end] != s.match_text:
             raise ValueError(f"본문이 바뀌어 '{s.label}' 추천을 적용할 수 없어요. 다시 분석해 주세요.")
-        text = text[: s.start] + "{" + s.label + "}" + text[s.end :]
+        repl = "{" + s.label + "}"
+        if not s.match_text.strip() and s.start > 0 and text[s.start - 1] not in " \n":
+            repl = " " + repl
+        text = text[: s.start] + repl + text[s.end :]
     return text
 
 
