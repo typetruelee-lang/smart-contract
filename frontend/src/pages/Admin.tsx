@@ -1,6 +1,36 @@
 import { useCallback, useEffect, useState } from "react";
 import { Badge, Button, Card, ErrorView, Loading, Page, Row } from "../components/ui";
-import { api } from "../lib/api";
+import { ApiError, api } from "../lib/api";
+import { API_BASE } from "../lib/runtime";
+
+// 운영(APP_ENV=production)에서는 ADMIN_TOKEN 이 필요하다: /admin?token=... 으로 한 번 열면 이 탭에만 보관
+function adminToken(): string {
+  const q = new URLSearchParams(window.location.search).get("token");
+  if (q) {
+    sessionStorage.setItem("kz_admin_token", q);
+    window.history.replaceState(null, "", "/admin");
+  }
+  return sessionStorage.getItem("kz_admin_token") ?? "";
+}
+
+async function adminFetch<T>(url: string, method = "GET"): Promise<T> {
+  const t = adminToken();
+  if (!t) return method === "GET" ? api.get<T>(url) : api.post<T>(url);
+  const csrf = document.cookie.match(/(?:^|;\s*)kz_csrf=([^;]+)/)?.[1] ?? "";
+  const r = await fetch(API_BASE + url, { method, headers: { "X-Admin-Token": t, "X-CSRF-Token": decodeURIComponent(csrf) }, credentials: "same-origin" });
+  if (!r.ok) throw new ApiError(r.status, "ADMIN", r.status === 404 ? "관리자 토큰이 필요해요." : "불러오지 못했어요.");
+  return r.json();
+}
+
+function detail(d: unknown): string {
+  if (typeof d === "string") return d;
+  if (d && typeof d === "object") {
+    const o = d as Record<string, unknown>;
+    return [o.provider, o.network, o.chain_id && `chain ${o.chain_id}`, o.block !== undefined && `block ${o.block}`, o.records !== undefined && `${o.records}건`]
+      .filter(Boolean).join(" · ") || JSON.stringify(d);
+  }
+  return String(d);
+}
 
 interface Status {
   environment: string;
@@ -19,14 +49,14 @@ export default function Admin() {
   const [busy, setBusy] = useState(false);
   const load = useCallback(() => {
     setErr("");
-    api.get<Status>("/api/admin/status").then(setS).catch((e) => setErr(e.message));
+    adminFetch<Status>("/api/admin/status").then(setS).catch((e) => setErr(e.message));
   }, []);
   useEffect(load, [load]);
 
   async function runWorkers() {
     setBusy(true);
     try {
-      await api.post("/api/admin/workers/run");
+      await adminFetch("/api/admin/workers/run", "POST");
       load();
     } finally {
       setBusy(false);
@@ -56,7 +86,7 @@ export default function Admin() {
             <span className="font-medium">{k}</span>
             <span className="text-right text-[13px]">
               <span className={v.ok ? "font-bold text-ok" : "font-bold text-warn"}>{v.ok ? "✓" : "✗"}</span>{" "}
-              <span className="text-grey-500">{typeof v.detail === "string" ? v.detail : JSON.stringify(v.detail)}</span>
+              <span className="text-grey-500">{detail(v.detail)}</span>
             </span>
           </div>
         ))}
@@ -95,7 +125,7 @@ export default function Admin() {
       <Card className="p-4">
         <Row label="APP_ENV">{s.environment}</Row>
         <Row label="블록체인 기능">{s.config.blockchain_enabled ? `ON · ${s.config.blockchain_price}원 · ${s.config.anchor_mode}` : "OFF"}</Row>
-        <Row label="Anchor jobs">{JSON.stringify(s.anchor_jobs)}</Row>
+        <Row label="블록체인 기록 작업">{Object.entries(s.anchor_jobs).map(([k, v]) => `${k} ${v}`).join(" · ") || "없음"}</Row>
       </Card>
       {s.readiness.production_blockers.length > 0 && (
         <Card className="mt-4 p-4">

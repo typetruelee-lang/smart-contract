@@ -1,4 +1,4 @@
-import { displayValue, shortHash, splitBody, won } from "./format";
+import { displayValue, safeRedirect, shortHash, splitBody, won } from "./format";
 import { sha256Hex } from "./hash";
 import type { Field } from "./types";
 
@@ -25,4 +25,9 @@ describe("hash", () => {
     const buf = new TextEncoder().encode("abc").buffer as ArrayBuffer;
     expect(await sha256Hex(buf)).toBe("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");
   });
+});
+
+describe("safeRedirect", () => {
+  it.each(["/contracts/abc", "/invite/tok?x=1", "/"])("허용: %s", (p) => expect(safeRedirect(p)).toBe(p));
+  it.each(["//evil.com", "/\\evil.com", "https://evil.com", "javascript:alert(1)", "", null, "evil"])("차단: %s", (p) => expect(safeRedirect(p as string)).toBe("/"));
 });

@@ -77,3 +77,8 @@ export function splitBody(body: string): { text?: string; label?: string }[] {
   if (last < body.length) out.push({ text: body.slice(last) });
   return out;
 }
+
+/** 로그인 후 이동할 주소 검증 — 같은 사이트 경로만 허용 (오픈 리다이렉트 방지) */
+export function safeRedirect(next: string | null | undefined): string {
+  return next && /^\/(?![/\\])[^\\]*$/.test(next) ? next : "/";
+}

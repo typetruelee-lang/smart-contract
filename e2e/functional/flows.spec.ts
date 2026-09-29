@@ -275,3 +275,14 @@ test("관리자 대시보드가 시스템 상태를 보여준다", async ({ brow
   await expect(A.page.getByTestId("components")).not.toContainText("✗");
 });
 
+
+test("로그인 후 외부 주소로 이동시키는 링크(오픈 리다이렉트)는 무시된다", async ({ browser }) => {
+  const A = await newParty(browser);
+  for (const bad of ["//evil.example", "/\\evil.example", "https://evil.example"]) {
+    await A.page.context().clearCookies();
+    await A.page.goto(`/login?next=${encodeURIComponent(bad)}`);
+    await A.page.getByTestId("login-hong").click();
+    await A.page.waitForURL((u) => !u.pathname.startsWith("/login"));
+    expect(new URL(A.page.url()).host).toMatch(/^localhost/);
+  }
+});

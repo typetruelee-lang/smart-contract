@@ -122,14 +122,16 @@ def _create_job(db: Session, c: Contract, p: Payment) -> AnchorJob:
 def process_job(db: Session, job_id: str) -> AnchorJob:
     s = get_settings()
     job = db.get(AnchorJob, job_id, with_for_update=True)
-    assert job is not None
+    if job is None:
+        raise RuntimeError("내부 상태 오류: job 없음")
     if job.status in ("CONFIRMED", "FAILED"):
         return job
     if job.mode == "merkle":
         # 배치 대상은 run_merkle_batch 가 처리
         return job
     c = db.get(Contract, job.contract_id)
-    assert c is not None
+    if c is None:
+        raise RuntimeError("내부 상태 오류: c 없음")
     job.attempts += 1
     try:
         bc = get_blockchain(db)

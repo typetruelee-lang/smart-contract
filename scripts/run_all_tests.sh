@@ -26,7 +26,8 @@ echo "▶ 3/5 스마트컨트랙트 컴파일"
 (cd contracts && npm run -s compile > "$RAW/contract-compile.log" 2>&1) ; status contract_compile_exit $?
 
 echo "▶ 4/5 E2E (브라우저 자동화)"
-(cd e2e && npx playwright test --reporter=list > "$RAW/e2e.log" 2>&1) ; status e2e_exit $?
+rm -f "$RAW/e2e.json"
+(cd e2e && npx playwright test > "$RAW/e2e.log" 2>&1) ; status e2e_exit $?   # 리포터: list + json(test-results/raw/e2e.json)
 
 echo "▶ 5/5 보안 점검"
 (cd backend && .venv/bin/bandit -q -r app -f json -o "$RAW/bandit.json" >/dev/null 2>&1) ; status bandit_exit $?

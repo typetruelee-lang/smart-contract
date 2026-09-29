@@ -124,7 +124,8 @@ def read_blob(b: DocumentBlob) -> bytes:
 
 def current_version(db: Session, c: Contract) -> DocumentVersion:
     v = db.scalar(select(DocumentVersion).where(DocumentVersion.contract_id == c.id, DocumentVersion.version_no == c.current_version_no))
-    assert v is not None
+    if v is None:
+        raise RuntimeError("내부 상태 오류: v 없음")
     return v
 
 
@@ -388,7 +389,8 @@ def _party_by_token(db: Session, token: str) -> ContractParty:
 def invite_preview(db: Session, token: str) -> dict:
     p = _party_by_token(db, token)
     c = db.get(Contract, p.contract_id)
-    assert c is not None
+    if c is None:
+        raise RuntimeError("내부 상태 오류: c 없음")
     owner = next(x for x in c.parties if x.role == "A")
     return {"contract_id": c.id, "title": c.title, "from": owner.display_name_masked, "status": c.status, "joined": p.user_id is not None}
 
@@ -396,7 +398,8 @@ def invite_preview(db: Session, token: str) -> dict:
 def accept_invite(db: Session, token: str, user: User) -> Contract:
     p = _party_by_token(db, token)
     c = db.get(Contract, p.contract_id)
-    assert c is not None
+    if c is None:
+        raise RuntimeError("내부 상태 오류: c 없음")
     _require_editable(c)
     if any(x.user_id == user.id and x.role == "A" for x in c.parties):
         raise ContractError(409, "SELF_INVITE", "내가 만든 계약에는 상대방으로 참여할 수 없어요. 상대방에게 링크를 보내 주세요.")

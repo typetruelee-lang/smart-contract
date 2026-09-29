@@ -101,7 +101,7 @@ class _PdfRenderer:
                     try:
                         if browser is not None:
                             browser.close()
-                    except Exception:  # noqa: BLE001
+                    except Exception:  # noqa: BLE001  # nosec B110 - 부가 기능 실패는 무시(본 기능에 영향 없음)
                         pass
                     browser = None
 
@@ -322,7 +322,8 @@ def _flatten_pdf(source_pdf: bytes, fields: list[FieldSpec], sig_images: dict[st
             items = []
             for f in page_fields:
                 p = f.position
-                assert p is not None
+                if p is None:
+                    raise RuntimeError("내부 상태 오류: p 없음")
                 item = {"x": p.x * 100, "y": p.y * 100, "w": p.w * 100, "h": p.h * 100, "type": f.type}
                 if f.type == "SIGNATURE":
                     item["src"] = sig_images.get(str(f.value)) if f.value else None

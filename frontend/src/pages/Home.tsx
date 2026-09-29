@@ -46,7 +46,9 @@ export default function Home() {
 
       {todo.length > 0 && (
         <Card className="mt-4 bg-toss-blue-light" onClick={() => nav(`/contracts/${todo[0].id}`)} testid="home-todo">
-          <p className="font-semibold text-toss-blue">내 서명을 기다리는 계약이 {todo.length}건 있어요</p>
+          <p className="font-semibold text-toss-blue">
+            {todo.some((c) => c.status === "INVITED" || c.status === "SIGNING") ? "내 서명을 기다리는 계약이 있어요" : "작성 중인 계약이 있어요"} ({todo.length}건)
+          </p>
           <p className="mt-1 text-[14px] text-grey-700">{todo[0].title} →</p>
         </Card>
       )}

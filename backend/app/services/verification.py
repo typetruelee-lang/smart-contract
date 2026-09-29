@@ -58,7 +58,8 @@ def check(db: Session, verification_id: str | None, document_hash: str) -> dict:
             return {"match": False, "uploaded_hash": h, "reason": "NOT_FOUND",
                     "message": "이 문서의 디지털 지문과 일치하는 계약 기록이 없어요."}
         info = _public(db, c)
-    assert c is not None
+    if c is None:
+        raise RuntimeError("내부 상태 오류: c 없음")
     match = h == c.document_hash
     onchain = None
     job = latest_anchor(db, c)

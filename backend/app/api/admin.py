@@ -103,7 +103,8 @@ def status(db: Session = Depends(get_db)):
         return f"Chromium: {'OK' if os.path.exists(s.PDF_BROWSER_EXECUTABLE or exe) else 'missing'} · 한글폰트: {'OK' if shutil.which('fc-list') else '?'}"
 
     def hash_check():
-        assert sha256_bytes(b"abc") == "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+        if not (sha256_bytes(b"abc") == "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"):
+            raise RuntimeError("SHA-256 자가 점검 실패")
         return "SHA-256 self-test OK"
 
     def bc_check():
@@ -122,7 +123,8 @@ def status(db: Session = Depends(get_db)):
     def key_check():
         kp = keys.get_key_provider()
         ct, w, v = keys.encrypt(b"ping")
-        assert keys.decrypt(ct, w, v) == b"ping"
+        if not (keys.decrypt(ct, w, v) == b"ping"):
+            raise RuntimeError("암호화 자가 점검 실패")
         return f"{kp.name} ({v})"
 
     components = {

@@ -46,7 +46,7 @@ export default defineConfig({
   ],
   webServer: EXTERNAL ? [] : [
     {
-      command: `cd ${ROOT}/backend && env ${E2E_ENV} .venv/bin/alembic upgrade head && env ${E2E_ENV} .venv/bin/uvicorn app.main:app --port ${API_PORT}`,
+      command: `cd ${ROOT}/backend && env ${E2E_ENV} .venv/bin/alembic downgrade base && env ${E2E_ENV} .venv/bin/alembic upgrade head && env ${E2E_ENV} .venv/bin/uvicorn app.main:app --port ${API_PORT}`,
       url: `http://localhost:${API_PORT}/api/health`,
       reuseExistingServer: false,
       timeout: 60_000,

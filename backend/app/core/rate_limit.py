@@ -46,7 +46,7 @@ class RateLimiter:
                 if n == 1:
                     c.expire(full, window + 1)
                 return n <= limit
-            except Exception:  # noqa: BLE001
+            except Exception:  # noqa: BLE001  # nosec B110 - 부가 기능 실패는 무시(본 기능에 영향 없음)
                 pass
         with self._lock:
             b, n = self._mem.get(key, (bucket, 0))
@@ -64,7 +64,7 @@ class RateLimiter:
             try:
                 for k in c.scan_iter("rl:*"):
                     c.delete(k)
-            except Exception:  # noqa: BLE001
+            except Exception:  # noqa: BLE001  # nosec B110 - 부가 기능 실패는 무시(본 기능에 영향 없음)
                 pass
 
 

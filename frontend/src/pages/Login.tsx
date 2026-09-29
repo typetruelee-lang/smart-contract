@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button, Page, useToast } from "../components/ui";
 import { ApiError, api } from "../lib/api";
 import { useAuth } from "../lib/auth";
+import { safeRedirect } from "../lib/format";
 import { getBridge } from "../lib/tossBridge";
 
 const TEST_USERS = [
@@ -18,8 +19,7 @@ export default function Login() {
   const toast = useToast();
   const [busy, setBusy] = useState<string | null>(null);
   const [mockLogin, setMockLogin] = useState(true);
-  const next = sp.get("next") || "/";
-  const safeNext = next.startsWith("/") && !next.startsWith("//") ? next : "/";
+  const safeNext = safeRedirect(sp.get("next"));
   const bridge = getBridge();
 
   useEffect(() => {

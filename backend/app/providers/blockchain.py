@@ -244,7 +244,7 @@ class EvmBlockchainProvider(BlockchainProvider):
             logs = self.contract.events.DocumentRegistered().get_logs(from_block=0, argument_filters={"documentHash": bytes.fromhex(h)})
             if logs:
                 tx_id = self._hex(logs[-1].transactionHash)
-        except Exception:  # noqa: BLE001
+        except Exception:  # noqa: BLE001  # nosec B110 - 부가 기능 실패는 무시(본 기능에 영향 없음)
             pass
         return OnchainRecord(value=h, timestamp=datetime.fromtimestamp(ts, timezone.utc), version=version, tx_id=tx_id)
 

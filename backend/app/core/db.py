@@ -35,7 +35,8 @@ def reset_engine() -> None:
 
 def SessionLocal() -> Session:
     get_engine()
-    assert _SessionLocal is not None
+    if _SessionLocal is None:
+        raise RuntimeError("DB 세션을 초기화하지 못했습니다.")
     return _SessionLocal()
 
 
