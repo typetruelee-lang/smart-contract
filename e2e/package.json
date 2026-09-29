@@ -1,7 +1,7 @@
 {
   "name": "kyeyakhaja-e2e",
   "private": true,
-  "type": "module",
+  
   "scripts": {
     "test": "playwright test",
     "visual": "playwright test --project=visual"
