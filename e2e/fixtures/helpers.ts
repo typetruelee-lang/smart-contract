@@ -20,7 +20,7 @@ ________________________
 `;
 
 export async function newParty(browser: Browser): Promise<{ ctx: BrowserContext; page: Page }> {
-  const ctx = await browser.newContext({ ...devices["iPhone 13"], locale: "ko-KR", timezoneId: "Asia/Seoul", acceptDownloads: true, baseURL: "http://localhost:5180" });
+  const ctx = await browser.newContext({ ...devices["iPhone 13"], locale: "ko-KR", timezoneId: "Asia/Seoul", acceptDownloads: true, baseURL: process.env.E2E_BASE_URL ?? "http://localhost:5180" });
   const page = await ctx.newPage();
   return { ctx, page };
 }

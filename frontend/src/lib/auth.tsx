@@ -2,6 +2,7 @@ import { type ReactNode, createContext, useCallback, useContext, useEffect, useR
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { Loading } from "../components/ui";
 import { api, onAuthError } from "./api";
+import { IS_TOSS, tokenStore } from "./runtime";
 import { getBridge } from "./tossBridge";
 
 export interface User {
@@ -29,6 +30,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loc = useLocation();
 
   const refresh = useCallback(async () => {
+    if (IS_TOSS && !tokenStore.get()) {
+      setUser(null);
+      setLoading(false);
+      return;
+    }
     try {
       const r = await api.get<{ user: User }>("/api/auth/me");
       setUser(r.user);
@@ -61,12 +67,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = useCallback(async (testUser?: string) => {
     const bridge = getBridge();
     const r = await bridge.appLogin(testUser);
-    const res = await api.post<{ user: User }>("/api/auth/toss/login", { authorization_code: r.authorizationCode, referrer: r.referrer });
+    const res = await api.post<{ user: User; access_token?: string }>("/api/auth/toss/login", { authorization_code: r.authorizationCode, referrer: r.referrer });
+    if (IS_TOSS && res.access_token) tokenStore.set(res.access_token);
     setUser(res.user);
   }, []);
 
   const logout = useCallback(async () => {
     await api.post("/api/auth/logout");
+    tokenStore.set(null);
     setUser(null);
   }, []);
 

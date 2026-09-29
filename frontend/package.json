@@ -8,9 +8,11 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview --host 0.0.0.0 --port 5173",
     "test": "vitest run",
-    "typecheck": "tsc -b --noEmit"
+    "typecheck": "tsc -b --noEmit",
+    "build:ait": "tsc -b && vite build --mode toss && ait build"
   },
   "dependencies": {
+    "@apps-in-toss/web-framework": "3.6.0",
     "pdfjs-dist": "4.10.38",
     "react": "18.3.1",
     "react-dom": "18.3.1",

@@ -58,8 +58,23 @@ def decode_session(token: str) -> str:
     return payload["sub"]
 
 
+def _bearer(request: Request) -> str | None:
+    """앱인토스 번들(토스 호스팅, 다른 도메인)에서는 쿠키 대신 Authorization: Bearer 토큰을 사용한다."""
+    h = request.headers.get("Authorization", "")
+    if h.startswith("Bearer ") and len(h) > 7:
+        return h[7:].strip()
+    return None
+
+
+def issue_token(user: User) -> str:
+    s = get_settings()
+    now = datetime.now(timezone.utc)
+    return jwt.encode({"sub": user.id, "iat": now, "exp": now + timedelta(minutes=s.SESSION_TTL_MINUTES), "jti": secrets.token_hex(8), "mode": "bearer"},
+                      _secret(), algorithm="HS256")
+
+
 def current_user(request: Request, db: Session = Depends(get_db)) -> User:
-    token = request.cookies.get(SESSION_COOKIE)
+    token = _bearer(request) or request.cookies.get(SESSION_COOKIE)
     if not token:
         raise HTTPException(401, detail={"code": "UNAUTHENTICATED", "message": "로그인이 필요해요."})
     user = db.get(User, decode_session(token))
@@ -69,7 +84,7 @@ def current_user(request: Request, db: Session = Depends(get_db)) -> User:
 
 
 def optional_user(request: Request, db: Session = Depends(get_db)) -> User | None:
-    token = request.cookies.get(SESSION_COOKIE)
+    token = _bearer(request) or request.cookies.get(SESSION_COOKIE)
     if not token:
         return None
     try:
@@ -85,7 +100,7 @@ def csrf_ok(request: Request) -> bool:
     if not path.startswith("/api/") or any(path.startswith(p) for p in CSRF_EXEMPT_PREFIXES):
         return True
     if SESSION_COOKIE not in request.cookies:
-        return True  # 인증 없는 요청은 current_user 에서 401
+        return True  # 쿠키 세션이 없으면(비로그인 또는 Bearer 토큰) CSRF 대상 아님 — Bearer 는 브라우저가 자동 전송하지 않음
     cookie = request.cookies.get(CSRF_COOKIE, "")
     header = request.headers.get(CSRF_HEADER, "")
     return bool(cookie) and hmac.compare_digest(cookie, header)

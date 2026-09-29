@@ -6,8 +6,10 @@ import { randomBytes } from "node:crypto";
 const API_PORT = 8100;
 const WEB_PORT = 5180;
 const ROOT = path.resolve(__dirname, "..");
+// E2E_BASE_URL 이 있으면 이미 떠 있는 서버(예: docker compose)를 대상으로 테스트한다.
+const EXTERNAL = process.env.E2E_BASE_URL;
 // E2E 실행마다 새로 만드는 테스트 전용 비밀값 (세션 만료 테스트에서 만료된 토큰을 만들기 위해 공유)
-process.env.E2E_JWT_SECRET ||= randomBytes(32).toString("hex");
+if (!EXTERNAL) process.env.E2E_JWT_SECRET ||= randomBytes(32).toString("hex");
 const E2E_ENV = [
   `JWT_SECRET=${process.env.E2E_JWT_SECRET}`,
   "APP_ENV=development",
@@ -30,7 +32,7 @@ export default defineConfig({
   retries: 0,
   reporter: [["list"], ["json", { outputFile: "../test-results/raw/e2e.json" }]],
   use: {
-    baseURL: `http://localhost:${WEB_PORT}`,
+    baseURL: EXTERNAL ?? `http://localhost:${WEB_PORT}`,
     ...devices["iPhone 13"],
     browserName: "chromium",
     locale: "ko-KR",
@@ -42,7 +44,7 @@ export default defineConfig({
     { name: "functional", testMatch: /functional\/.*\.spec\.ts/ },
     { name: "visual", testMatch: /visual\/.*\.spec\.ts/ },
   ],
-  webServer: [
+  webServer: EXTERNAL ? [] : [
     {
       command: `cd ${ROOT}/backend && env ${E2E_ENV} .venv/bin/alembic upgrade head && env ${E2E_ENV} .venv/bin/uvicorn app.main:app --port ${API_PORT}`,
       url: `http://localhost:${API_PORT}/api/health`,

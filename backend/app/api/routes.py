@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from app.core.config import get_settings
 from app.core.db import get_db
 from app.core.logging import mask_name
-from app.core.security import clear_session, current_user, issue_session
+from app.core.security import clear_session, current_user, issue_session, issue_token
 from app.models import User
 from app.providers import get_ocr, get_toss_login
 from app.providers.base import ProviderError, ProviderNotConfigured
@@ -34,7 +34,7 @@ class LoginIn(BaseModel):
     referrer: str = Field(default="DEFAULT", pattern="^(DEFAULT|SANDBOX)$")
 
 
-def _login(db: Session, response: Response, provider_name: str, user_key: str, name: str) -> dict:
+def _login(db: Session, response: Response, provider_name: str, user_key: str, name: str, token_mode: bool = False) -> dict:
     from sqlalchemy import select
 
     u = db.scalar(select(User).where(User.provider == provider_name, User.provider_user_key == user_key))
@@ -42,18 +42,22 @@ def _login(db: Session, response: Response, provider_name: str, user_key: str, n
         u = User(provider=provider_name, provider_user_key=user_key, display_name_masked=mask_name(name))
         db.add(u)
         db.commit()
+    if token_mode:
+        # 앱인토스 번들: 쿠키 대신 Bearer 토큰 (메모리에만 보관)
+        return {"user": {"id": u.id, "name": u.display_name_masked}, "access_token": issue_token(u), "token_type": "Bearer"}
     csrf = issue_session(response, u)
     return {"user": {"id": u.id, "name": u.display_name_masked}, "csrf_token": csrf}
 
 
 @router.post("/auth/toss/login")
-def toss_login(body: LoginIn, response: Response, db: Session = Depends(get_db)):
+def toss_login(body: LoginIn, request: Request, response: Response, db: Session = Depends(get_db)):
     prov = get_toss_login()
     try:
         ident = prov.exchange(body.authorization_code, body.referrer)
     except ProviderError as e:
         raise HTTPException(401, detail={"code": "LOGIN_FAILED", "message": str(e)}) from e
-    return _login(db, response, "toss" if prov.name == "production" else "toss-mock", ident.user_key, ident.name)
+    return _login(db, response, "toss" if prov.name == "production" else "toss-mock", ident.user_key, ident.name,
+                  token_mode=request.headers.get("X-Auth-Mode") == "token")
 
 
 class MockLoginIn(BaseModel):
@@ -61,14 +65,14 @@ class MockLoginIn(BaseModel):
 
 
 @router.post("/auth/mock-login")
-def mock_login(body: MockLoginIn, response: Response, db: Session = Depends(get_db)):
+def mock_login(body: MockLoginIn, request: Request, response: Response, db: Session = Depends(get_db)):
     """개발용 테스트 계정 로그인 (production 에서는 비활성화)."""
     if get_settings().is_production:
         raise HTTPException(404)
     from app.providers.toss import MockTossLoginProvider
 
     ident = MockTossLoginProvider().exchange(f"mock-code-{body.test_user}", "SANDBOX")
-    return _login(db, response, "toss-mock", ident.user_key, ident.name)
+    return _login(db, response, "toss-mock", ident.user_key, ident.name, token_mode=request.headers.get("X-Auth-Mode") == "token")
 
 
 @router.get("/auth/me")

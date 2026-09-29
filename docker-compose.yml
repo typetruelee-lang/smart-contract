@@ -1,0 +1,89 @@
+# 계약하자 — 로컬 전체 실행 (개발용)
+#   docker compose up --build   →  http://localhost:5173
+# 외부 서비스는 모두 Mock (토스 로그인/결제/본인확인/전자서명), 블록체인은 로컬 Hardhat 체인에 실제 트랜잭션을 기록한다.
+name: kyeyakhaja
+
+x-backend-env: &backend-env
+  APP_ENV: development
+  DATABASE_URL: postgresql+psycopg://contract:contract@db:5432/contract
+  REDIS_URL: redis://redis:6379/0
+  PUBLIC_BASE_URL: http://localhost:5173
+  CORS_ORIGINS: http://localhost:5173
+  BLOCKCHAIN_PROVIDER: evm
+  BLOCKCHAIN_NETWORK: hardhat-local
+  BLOCKCHAIN_RPC_URL: http://chain:8545
+  TOSS_PROVIDER: mock
+  PAYMENT_PROVIDER: mock
+  IDENTITY_PROVIDER: mock
+  SIGNATURE_PROVIDER: development
+  OCR_PROVIDER: local
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: contract
+      POSTGRES_PASSWORD: contract
+      POSTGRES_DB: contract
+    volumes: [dbdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U contract"]
+      interval: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      retries: 20
+
+  chain:
+    build: { context: ., dockerfile: contracts/Dockerfile, secrets: [extra_ca] }
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- --header='content-type: application/json' --post-data='{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"eth_chainId\",\"params\":[]}' http://localhost:8545 | grep -q 0x7a69"]
+      interval: 3s
+      retries: 40
+
+  backend:
+    build: { context: ., dockerfile: backend/Dockerfile, secrets: [extra_ca] }
+    command: ["api"]
+    environment: *backend-env
+    env_file:
+      - path: .env.local
+        required: false
+    volumes: [secrets:/data]
+    depends_on:
+      db: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      chain: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request;urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 5s
+      retries: 30
+
+  worker:
+    build: { context: ., dockerfile: backend/Dockerfile, secrets: [extra_ca] }
+    command: ["worker"]
+    environment: *backend-env
+    env_file:
+      - path: .env.local
+        required: false
+    volumes: [secrets:/data]
+    depends_on:
+      backend: { condition: service_healthy }
+
+  frontend:
+    build: { context: ., dockerfile: frontend/Dockerfile, secrets: [extra_ca] }
+    ports: ["5173:80"]
+    depends_on:
+      backend: { condition: service_healthy }
+
+volumes:
+  dbdata:
+  secrets:
+
+# 빌드 시에만 쓰는 선택 CA 인증서 (프록시가 TLS 를 검사하는 네트워크용). 보통은 비워 두면 된다.
+secrets:
+  extra_ca:
+    file: ${EXTRA_CA_CERT:-./.empty-ca.crt}

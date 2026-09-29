@@ -28,7 +28,6 @@ from app.services.fields import FieldSpec, display_value, infer_type
 log = logging.getLogger(__name__)
 TEMPLATES = Path(__file__).resolve().parents[1] / "templates"
 _jinja = Environment(loader=FileSystemLoader(str(TEMPLATES)), autoescape=select_autoescape(["html"]))
-_browser_lock = threading.Lock()
 KST_OFFSET_HOURS = 9
 
 
@@ -51,28 +50,80 @@ def _chromium_path() -> str | None:
     return None
 
 
-def html_to_pdf(html: str, *, width: str | None = None, height: str | None = None) -> bytes:
-    from playwright.sync_api import sync_playwright
+class _PdfRenderer:
+    """Chromium 을 한 번만 띄워 재사용하는 전용 스레드.
 
-    with _browser_lock, sync_playwright() as pw:
-        kwargs = {"args": ["--no-sandbox", "--disable-dev-shm-usage"]}
+    Playwright sync API 객체는 만든 스레드에서만 쓸 수 있으므로, 요청 스레드(FastAPI threadpool)는
+    큐에 작업을 넣고 결과를 기다린다. 브라우저가 죽으면 다음 작업에서 다시 띄운다.
+    """
+
+    def __init__(self) -> None:
+        import queue
+
+        self._q: queue.Queue = queue.Queue()
+        self._thread: threading.Thread | None = None
+        self._start_lock = threading.Lock()
+
+    def _ensure(self) -> None:
+        with self._start_lock:
+            if self._thread is None or not self._thread.is_alive():
+                self._thread = threading.Thread(target=self._run, name="pdf-renderer", daemon=True)
+                self._thread.start()
+
+    def _launch(self, pw):
+        kwargs: dict = {"args": ["--no-sandbox", "--disable-dev-shm-usage"]}
         exe = _chromium_path()
         if exe:
             kwargs["executable_path"] = exe
-        browser = pw.chromium.launch(**kwargs)
-        try:
-            page = browser.new_page()
-            # 문서 렌더링 중 외부 요청 금지 (SSRF/추적 방지) — data: URI 만 허용
-            page.route("**/*", lambda route: route.abort() if not route.request.url.startswith("data:") else route.continue_())
-            page.set_content(html, wait_until="load")
-            opts: dict = {"print_background": True, "prefer_css_page_size": True}
-            if width and height:
-                opts.update(width=width, height=height)
-            else:
-                opts["format"] = "A4"
-            return page.pdf(**opts)
-        finally:
-            browser.close()
+        return pw.chromium.launch(**kwargs)
+
+    def _run(self) -> None:
+        from playwright.sync_api import sync_playwright
+
+        with sync_playwright() as pw:
+            browser = None
+            while True:
+                html, opts, fut = self._q.get()
+                try:
+                    if browser is None or not browser.is_connected():
+                        browser = self._launch(pw)
+                    ctx = browser.new_context()
+                    try:
+                        page = ctx.new_page()
+                        # 문서 렌더링 중 외부 요청 금지 (SSRF/추적 방지) — data: URI 만 허용
+                        page.route("**/*", lambda route: route.abort() if not route.request.url.startswith("data:") else route.continue_())
+                        page.set_content(html, wait_until="load")
+                        fut.set_result(page.pdf(**opts))
+                    finally:
+                        ctx.close()
+                except Exception as e:  # noqa: BLE001
+                    fut.set_exception(e)
+                    try:
+                        if browser is not None:
+                            browser.close()
+                    except Exception:  # noqa: BLE001
+                        pass
+                    browser = None
+
+    def render(self, html: str, opts: dict, timeout: float = 60) -> bytes:
+        from concurrent.futures import Future
+
+        self._ensure()
+        fut: Future = Future()
+        self._q.put((html, opts, fut))
+        return fut.result(timeout=timeout)
+
+
+_renderer = _PdfRenderer()
+
+
+def html_to_pdf(html: str, *, width: str | None = None, height: str | None = None) -> bytes:
+    opts: dict = {"print_background": True, "prefer_css_page_size": True}
+    if width and height:
+        opts.update(width=width, height=height)
+    else:
+        opts["format"] = "A4"
+    return _renderer.render(html, opts)
 
 
 def qr_data_uri(url: str) -> str:

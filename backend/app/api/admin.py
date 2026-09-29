@@ -34,6 +34,7 @@ router = APIRouter(prefix="/api")
 
 
 def require_admin(x_admin_token: str | None = Header(default=None)) -> None:
+    """개발/테스트 환경: 누구나 조회 (개발자 대시보드). 운영: ADMIN_TOKEN 헤더 필수 (없으면 404)."""
     s = get_settings()
     if s.is_production:
         if not s.ADMIN_TOKEN or not x_admin_token or not hmac.compare_digest(s.ADMIN_TOKEN, x_admin_token):

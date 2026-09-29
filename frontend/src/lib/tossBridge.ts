@@ -1,9 +1,8 @@
-// TossBridge — Apps in Toss SDK 호출을 한 곳에 모은다.
+// TossBridge — Apps in Toss SDK(@apps-in-toss/web-framework) 호출을 한 곳에 모은다.
 //
-// 개발/브라우저: mock 구현 (테스트 계정 선택, 모의 결제 시트, navigator.share 대체)
-// 토스 앱 안(WebView): @apps-in-toss/web-framework 의 appLogin / 인앱결제 / 공유를 사용한다.
-//   실제 SDK 연결은 TOSS_SUBMISSION_CHECKLIST.md 의 "SDK 연결" 단계를 따른다.
-//   (SDK 패키지는 앱인토스 콘솔 앱 등록 후 granite 설정과 함께 추가한다)
+// web  (개발/브라우저): mock 구현 — 테스트 계정 로그인, 화면의 모의 결제 시트, navigator.share/복사
+// toss (앱인토스 번들): TossAuth.login / IAP.createOneTimePurchaseOrder / Share / File.saveBase64
+import { APP_NAME, IS_TOSS } from "./runtime";
 
 export interface LoginResult {
   authorizationCode: string;
@@ -15,19 +14,9 @@ export interface TossBridge {
   isInToss: boolean;
   appLogin(testUser?: string): Promise<LoginResult>;
   share(title: string, url: string): Promise<"shared" | "copied">;
+  /** 인앱결제(IAP). 운영에서는 앱인토스 SDK 결제창, 개발(mock)에서는 화면의 모의 결제 시트를 사용 */
+  purchase(sku: string, orderId: string): Promise<{ result: "success" | "fail" | "cancel"; payload: Record<string, unknown> }>;
   closeView(): void;
-}
-
-type AitSdk = {
-  appLogin: () => Promise<LoginResult>;
-  share?: (opts: { message: string }) => Promise<void>;
-  closeView?: () => void;
-};
-
-declare global {
-  interface Window {
-    __APPS_IN_TOSS__?: AitSdk; // 토스 앱 WebView 가 주입 (SDK 연결 시)
-  }
 }
 
 async function copy(url: string): Promise<"copied"> {
@@ -61,27 +50,75 @@ const mockBridge: TossBridge = {
     }
     return copy(url);
   },
+  async purchase() {
+    return { result: "success", payload: {} };
+  },
   closeView() {
     window.history.back();
   },
 };
 
-function realBridge(sdk: AitSdk): TossBridge {
-  return {
-    name: "apps-in-toss",
-    isInToss: true,
-    appLogin: () => sdk.appLogin(),
-    async share(title, url) {
-      if (sdk.share) {
-        await sdk.share({ message: `${title}\n${url}` });
-        return "shared";
-      }
-      return copy(url);
-    },
-    closeView: () => sdk.closeView?.(),
-  };
+// 앱인토스 SDK — 토스 번들(VITE_RUNTIME=toss)에서만 동적으로 불러온다
+type Sdk = typeof import("@apps-in-toss/web-framework");
+let sdkPromise: Promise<Sdk> | null = null;
+const loadSdk = () => (sdkPromise ??= import("@apps-in-toss/web-framework"));
+
+const tossBridge: TossBridge = {
+  name: "apps-in-toss",
+  isInToss: true,
+  async appLogin() {
+    const sdk = await loadSdk();
+    return sdk.TossAuth.login();
+  },
+  async share(title, url) {
+    const sdk = await loadSdk();
+    let link = url;
+    try {
+      // 토스 앱에서 바로 열리는 공유 링크 (intoss:// 딥링크)
+      const path = new URL(url).pathname;
+      link = await sdk.Share.createLink({ path: `intoss://${APP_NAME}${path}` });
+    } catch {
+      /* 웹 링크 그대로 공유 */
+    }
+    await sdk.Share.sendMessage({ message: `${title}\n${link}` });
+    return "shared";
+  },
+  async purchase(sku, orderId) {
+    const sdk = await loadSdk();
+    if (!sdk.IAP.createOneTimePurchaseOrder.isSupported()) return { result: "fail", payload: { reason: "IAP_NOT_SUPPORTED" } };
+    return new Promise((resolve) => {
+      sdk.IAP.createOneTimePurchaseOrder({
+        options: {
+          sku,
+          // 상품 지급은 서버가 결제 확인 후 처리하므로 여기서는 성공 응답만 한다
+          processProductGrant: () => true,
+        },
+        onEvent: (e) => resolve({ result: "success", payload: { iapOrderId: e.data.orderId, serverOrderId: orderId, amount: e.data.amount } }),
+        onError: (err) => resolve({ result: String(err).toLowerCase().includes("cancel") ? "cancel" : "fail", payload: { error: String(err).slice(0, 200) } }),
+      });
+    });
+  },
+  closeView() {
+    loadSdk().then((sdk) => sdk.closeView());
+  },
+};
+
+export async function saveFileInToss(blob: Blob, filename: string) {
+  const sdk = await loadSdk();
+  const data = await new Promise<string>((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result).split(",", 2)[1] ?? "");
+    r.onerror = reject;
+    r.readAsDataURL(blob);
+  });
+  if (sdk.File.saveBase64.isSupported()) return sdk.File.saveBase64({ data, fileName: filename, mimeType: blob.type || "application/pdf" });
+  if (sdk.File.openPDFViewer.isSupported()) {
+    await sdk.File.openPDFViewer({ data, filename });
+    return;
+  }
+  throw new Error("이 토스 앱 버전에서는 파일 저장을 지원하지 않아요. 토스 앱을 업데이트해 주세요.");
 }
 
 export function getBridge(): TossBridge {
-  return typeof window !== "undefined" && window.__APPS_IN_TOSS__ ? realBridge(window.__APPS_IN_TOSS__) : mockBridge;
+  return IS_TOSS ? tossBridge : mockBridge;
 }

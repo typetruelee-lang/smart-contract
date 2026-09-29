@@ -1,0 +1,14 @@
+# Docker 스택 대상 E2E 전용 설정 — 한 IP 에서 수백 건의 요청을 보내므로 rate limit 을 높인다.
+#   docker compose -f docker-compose.yml -f e2e/docker-compose.e2e.yml up -d
+#   cd e2e && E2E_BASE_URL=http://localhost:5173 npx playwright test --project=functional
+x-e2e-env: &e2e-env
+  RATE_LIMIT_PER_MINUTE: "10000"
+  RATE_LIMIT_AUTH_PER_MINUTE: "10000"
+  RATE_LIMIT_UPLOAD_PER_MINUTE: "10000"
+  RATE_LIMIT_VERIFY_PER_MINUTE: "10000"
+  ANCHOR_RETRY_BASE_SECONDS: "0"
+services:
+  backend:
+    environment: *e2e-env
+  worker:
+    environment: *e2e-env

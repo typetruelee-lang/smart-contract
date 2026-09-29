@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Badge, Button, Card, ErrorView, Loading, Page, Row, Sheet, useToast } from "../components/ui";
 import { ApiError, api, downloadFile } from "../lib/api";
 import { ANCHOR_LABEL, formatKst, shortHash, won } from "../lib/format";
+import { getBridge } from "../lib/tossBridge";
 import type { ContractView } from "../lib/types";
 
 export default function Complete() {
@@ -12,7 +13,7 @@ export default function Complete() {
   const [c, setC] = useState<ContractView | null>(null);
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState("");
-  const [pay, setPay] = useState<{ payment_id: string; amount: number } | null>(null);
+  const [pay, setPay] = useState<{ payment_id: string; amount: number; provider: string; order_id: string; client_params: { sku?: string } } | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -50,8 +51,15 @@ export default function Complete() {
   async function checkout() {
     setBusy("checkout");
     try {
-      const r = await api.post<{ payment_id: string; amount: number }>(`/api/contracts/${id}/anchor/checkout`);
-      setPay(r);
+      const r = await api.post<NonNullable<typeof pay>>(`/api/contracts/${id}/anchor/checkout`);
+      if (r.provider === "mock") {
+        setPay(r); // 개발용 모의 결제 시트
+      } else {
+        // 운영: 앱인토스 인앱결제 창 → 결과를 서버에서 검증
+        const res = await getBridge().purchase(r.client_params.sku ?? "", r.order_id);
+        setPay(r);
+        await confirm(res.result, r, res.payload);
+      }
     } catch (e) {
       toast(e instanceof ApiError ? e.message : "결제를 시작하지 못했어요.", "error");
     } finally {
@@ -59,11 +67,11 @@ export default function Complete() {
     }
   }
 
-  async function confirm(result: "success" | "fail" | "cancel") {
-    if (!pay) return;
+  async function confirm(result: "success" | "fail" | "cancel", p = pay, providerPayload: Record<string, unknown> = {}) {
+    if (!p) return;
     setBusy(result);
     try {
-      const r = await api.post<{ payment_status: string; anchor_status: string; reason?: string }>(`/api/contracts/${id}/anchor/confirm`, { payment_id: pay.payment_id, result });
+      const r = await api.post<{ payment_status: string; anchor_status: string; reason?: string }>(`/api/contracts/${id}/anchor/confirm`, { payment_id: p.payment_id, result, provider_payload: providerPayload });
       setPay(null);
       if (r.payment_status !== "PAID") toast(r.reason ?? "결제가 완료되지 않았어요. 기록하지 않았어요.", "error");
       else if (r.anchor_status === "CONFIRMED") toast("디지털 지문을 블록체인에 기록했어요.");
@@ -172,7 +180,7 @@ export default function Complete() {
         <Button size="sm" variant="ghost" full={false} onClick={() => nav("/")}>홈으로</Button>
       </div>
 
-      <Sheet open={!!pay} onClose={() => !busy && setPay(null)} title="결제하기">
+      <Sheet open={!!pay && pay.provider === "mock"} onClose={() => !busy && setPay(null)} title="결제하기">
         <Card className="p-4">
           <Row label="상품">블록체인 기록 (디지털 지문)</Row>
           <Row label="금액">{won(pay?.amount ?? 0)}</Row>

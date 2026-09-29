@@ -215,7 +215,13 @@ class EvmBlockchainProvider(BlockchainProvider):
         if existing:
             return TxReceipt(existing.tx_id or "", "CONFIRMED", None)
         r = self._send(fn)
-        return TxReceipt(r.transactionHash.hex() if hasattr(r.transactionHash, "hex") else str(r.transactionHash), "SUBMITTED", r.blockNumber)
+        return TxReceipt(self._hex(r.transactionHash), "SUBMITTED", r.blockNumber)
+
+    @staticmethod
+    def _hex(v) -> str:
+        from web3 import Web3
+
+        return Web3.to_hex(v)  # 항상 0x 접두어
 
     def register_document_hash(self, document_hash: str, version: int = 1) -> TxReceipt:
         h = normalize_hash(document_hash)
@@ -237,7 +243,7 @@ class EvmBlockchainProvider(BlockchainProvider):
         try:
             logs = self.contract.events.DocumentRegistered().get_logs(from_block=0, argument_filters={"documentHash": bytes.fromhex(h)})
             if logs:
-                tx_id = logs[-1].transactionHash.hex()
+                tx_id = self._hex(logs[-1].transactionHash)
         except Exception:  # noqa: BLE001
             pass
         return OnchainRecord(value=h, timestamp=datetime.fromtimestamp(ts, timezone.utc), version=version, tx_id=tx_id)

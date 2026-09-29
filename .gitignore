@@ -17,3 +17,4 @@ e2e/.auth/
 htmlcov/
 contracts/cache/
 *.log
+.run/

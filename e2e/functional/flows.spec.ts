@@ -198,6 +198,7 @@ test("내용 변경 시 새 버전 + 기존 서명 무효화 안내", async ({ b
 });
 
 test("세션 만료 → 로그인 화면으로 이동 후 원래 화면 복귀", async ({ browser }) => {
+  test.skip(!process.env.E2E_JWT_SECRET, "외부 서버 대상 실행에서는 서버 비밀값을 알 수 없어 건너뜀");
   const A = await newParty(browser);
   await login(A.page, "hong");
   const me = await (await A.page.request.get("/api/auth/me")).json();

@@ -26,7 +26,7 @@ def create_app() -> FastAPI:
     app = FastAPI(title="계약하자 API", version="1.0.0", docs_url=None if s.is_production else "/api/docs",
                   openapi_url=None if s.is_production else "/api/openapi.json", redoc_url=None)
     app.add_middleware(CORSMiddleware, allow_origins=s.cors_origins, allow_credentials=True,
-                       allow_methods=["GET", "POST", "PUT", "DELETE"], allow_headers=["Content-Type", "X-CSRF-Token"])
+                       allow_methods=["GET", "POST", "PUT", "DELETE"], allow_headers=["Content-Type", "X-CSRF-Token", "Authorization", "X-Auth-Mode", "X-Admin-Token"])
 
     @app.middleware("http")
     async def guard(request: Request, call_next):
@@ -34,7 +34,9 @@ def create_app() -> FastAPI:
         rate_limited = s.APP_ENV != "test" or bool(request.headers.get("X-RateLimit-Test"))
         if path.startswith("/api/") and not path.startswith("/api/dev/") and rate_limited:
             group, limit = limit_for(path, request.method)
-            ip = request.headers.get("X-Forwarded-For", request.client.host if request.client else "?").split(",")[0].strip()
+            # 클라이언트가 보낸 X-Forwarded-For 는 위조할 수 있으므로 직접 믿지 않는다.
+            # 신뢰하는 프록시(nginx) 뒤에서는 uvicorn --proxy-headers 가 client.host 를 실제 IP 로 바꿔 준다.
+            ip = request.client.host if request.client else "?"
             if not limiter.hit(f"{group}:{ip}", limit):
                 return JSONResponse(status_code=429, content={"detail": {"code": "RATE_LIMITED", "message": "요청이 너무 많아요. 잠시 후 다시 시도해 주세요."}},
                                     headers=SECURITY_HEADERS)

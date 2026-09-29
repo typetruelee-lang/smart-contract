@@ -175,10 +175,10 @@ def test_evm_register_verify_and_duplicate(evm, db):
     assert evm.verify_document_hash(h) is None
     r = evm.register_document_hash(h, 1)
     db.commit()
-    assert r.tx_id and r.block_number
+    assert r.tx_id.startswith("0x") and len(r.tx_id) == 66 and r.block_number
     rec = evm.verify_document_hash(h)
-    assert rec is not None and rec.value == h and rec.version == 1
-    info = evm.get_transaction(r.tx_id if r.tx_id.startswith("0x") else "0x" + r.tx_id)
+    assert rec is not None and rec.value == h and rec.version == 1 and rec.tx_id == r.tx_id
+    info = evm.get_transaction(r.tx_id)
     assert info is not None and info.confirmed
     # 중복 기록은 새 TX 없이 기존 기록 반환
     r2 = evm.register_document_hash(h, 1)
@@ -236,7 +236,7 @@ def test_full_flow_with_evm_provider(client_factory, monkeypatch, db):
     r = a.post(f"/api/contracts/{cid}/anchor/confirm", {"payment_id": co["payment_id"], "result": "success"}).json()
     assert r["anchor_status"] == "CONFIRMED"
     st = a.get(f"/api/contracts/{cid}").json()
-    assert st["anchor"]["provider"] == "evm"
+    assert st["anchor"]["provider"] == "evm" and st["anchor"]["tx_id"].startswith("0x")
     pdf = a.get(f"/api/contracts/{cid}/pdf/contract").content
     v = client_factory().post("/api/verify/check", {"verification_id": st["verification_id"], "document_hash": hashlib.sha256(pdf).hexdigest()}).json()
     assert v["match"] and v["onchain"]["recorded"] is True

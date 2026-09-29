@@ -201,7 +201,7 @@ export default function PdfEditor() {
             <p className="font-semibold text-toss-blue-dark">빈칸 {posSugs.length}곳을 찾았어요</p>
             <Button size="sm" full={false} onClick={() => applyPos(posSugs)} testid="apply-pos-all">모두 적용</Button>
           </div>
-          <p className="mt-1 text-[13px] text-grey-700">점선 상자를 눌러 하나씩 적용할 수도 있어요.</p>
+          <p className="mt-1 text-[13px] text-grey-700">점선 상자를 눌러 하나씩 적용할 수도 있어요. 적용한 빈칸은 끌어서 옮기고, 파란 점으로 크기를 바꿀 수 있어요.</p>
         </Card>
       )}
       {textSugs.length > 0 && (
@@ -239,12 +239,14 @@ export default function PdfEditor() {
                   {fields.filter((f) => f.page === pageNo && f.position).map((f) => (
                     <div key={f.field_id} data-testid={`box-${f.label}`} className={`absolute rounded border-2 ${selected === f.field_id ? "border-toss-blue bg-toss-blue/20" : "border-[#f59e0b] bg-[#fef3c7]/60"}`}
                       style={box(f.position!)} onPointerDown={startFieldDrag(f, "move")} onDoubleClick={() => setSheet({ field: f, isNew: false })}>
-                      <span className="pointer-events-none absolute -top-5 left-0 rounded bg-grey-900/80 px-1 text-[10px] whitespace-nowrap text-white">{f.label}</span>
+                      <span className="pointer-events-none absolute inset-0 flex items-center overflow-hidden px-0.5 text-[9px] leading-none font-semibold whitespace-nowrap text-grey-800">{f.label}</span>
                       {selected === f.field_id && (
                         <>
-                          <button className="absolute -top-5 right-0 rounded bg-toss-blue px-1.5 text-[10px] text-white" onPointerDown={(e) => e.stopPropagation()}
-                            onClick={() => setSheet({ field: f, isNew: false })} data-testid={`edit-${f.label}`}>설정</button>
-                          <span className="absolute -right-1.5 -bottom-1.5 h-4 w-4 cursor-se-resize rounded-full border-2 border-white bg-toss-blue" onPointerDown={startFieldDrag(f, "resize")} data-testid={`resize-${f.label}`} />
+                          <div className="absolute top-full left-0 z-10 mt-1 flex gap-1" onPointerDown={(e) => e.stopPropagation()}>
+                            <button className="rounded-lg bg-toss-blue px-2 py-1 text-[12px] font-semibold whitespace-nowrap text-white shadow" onClick={() => setSheet({ field: f, isNew: false })} data-testid={`edit-${f.label}`}>설정</button>
+                            <button className="rounded-lg bg-white px-2 py-1 text-[12px] font-semibold whitespace-nowrap text-warn shadow" onClick={() => { setFields((fs) => fs.filter((x) => x.field_id !== f.field_id)); setSelected(null); }} data-testid={`remove-${f.label}`}>삭제</button>
+                          </div>
+                          <span className="absolute -right-2 -bottom-2 h-5 w-5 cursor-se-resize rounded-full border-2 border-white bg-toss-blue shadow" onPointerDown={startFieldDrag(f, "resize")} data-testid={`resize-${f.label}`} />
                         </>
                       )}
                     </div>

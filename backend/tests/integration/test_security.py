@@ -126,8 +126,11 @@ def test_rate_limit(client_factory, monkeypatch):
 
     monkeypatch.setattr(get_settings(), "RATE_LIMIT_VERIFY_PER_MINUTE", 5)
     c = client_factory()
-    codes = [c.c.get("/api/verify/V-AAAA-BBBB-CCCC", headers={"X-RateLimit-Test": "1", "X-Forwarded-For": "10.9.9.9"}).status_code for _ in range(8)]
+    codes = [c.c.get("/api/verify/V-AAAA-BBBB-CCCC", headers={"X-RateLimit-Test": "1"}).status_code for _ in range(8)]
     assert codes[:5] == [404] * 5 and 429 in codes[5:]
+    # X-Forwarded-For 를 바꿔도 우회할 수 없다
+    spoof = [c.c.get("/api/verify/V-AAAA-BBBB-CCCC", headers={"X-RateLimit-Test": "1", "X-Forwarded-For": f"10.0.0.{i}"}).status_code for i in range(3)]
+    assert spoof == [429] * 3
 
 
 def test_dev_endpoints_disabled_in_production(client_factory, monkeypatch):
@@ -198,3 +201,27 @@ def test_db_stores_no_plaintext_contract_content(client_factory, db):
     dump = str(db.execute(text("select * from document_versions")).all()) + str(db.execute(text("select * from contract_parties")).all()) \
         + str(db.execute(text("select * from audit_events")).all()) + str(db.execute(text("select * from users")).all())
     assert "홍길동" not in dump and "김철수" not in dump and "10000000" not in dump and "매월 말일" not in dump
+
+
+def test_bearer_token_mode_for_apps_in_toss(client_factory):
+    """앱인토스 번들(다른 도메인)용 Bearer 토큰 로그인 — 쿠키 없이 동작하고 CSRF 대상이 아니다."""
+    c = client_factory()
+    r = c.c.post("/api/auth/toss/login", json={"authorization_code": "mock-code-hong", "referrer": "SANDBOX"}, headers={"X-Auth-Mode": "token"})
+    assert r.status_code == 200
+    body = r.json()
+    assert body["token_type"] == "Bearer" and "csrf_token" not in body
+    assert "kz_session" not in r.headers.get("set-cookie", "")
+    c.c.cookies.clear()
+    h = {"Authorization": f"Bearer {body['access_token']}"}
+    assert c.c.get("/api/contracts", headers=h).status_code == 200
+    assert c.c.post("/api/contracts", json={"title": "t", "body_text": "x"}, headers=h).status_code == 200
+    assert c.c.get("/api/contracts", headers={"Authorization": "Bearer invalid"}).status_code == 401
+
+
+def test_cors_allows_configured_origin_only(client_factory, monkeypatch):
+    c = client_factory()
+    r = c.c.options("/api/contracts", headers={"Origin": "http://localhost:5173", "Access-Control-Request-Method": "POST",
+                                               "Access-Control-Request-Headers": "authorization,content-type"})
+    assert r.status_code == 200 and r.headers.get("access-control-allow-origin") == "http://localhost:5173"
+    r = c.c.options("/api/contracts", headers={"Origin": "https://evil.example", "Access-Control-Request-Method": "POST"})
+    assert r.headers.get("access-control-allow-origin") is None

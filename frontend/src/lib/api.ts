@@ -1,4 +1,5 @@
-// API 클라이언트 — httpOnly 세션 쿠키 + CSRF(double-submit) 헤더를 자동으로 처리한다.
+// API 클라이언트 — web: httpOnly 세션 쿠키 + CSRF(double-submit) / toss: Bearer 토큰
+import { API_BASE, IS_TOSS, tokenStore } from "./runtime";
 
 export class ApiError extends Error {
   status: number;
@@ -33,10 +34,14 @@ async function request<T>(method: string, url: string, body?: unknown, opts: { r
     headers["Content-Type"] = "application/json";
     payload = JSON.stringify(body);
   }
-  if (method !== "GET") headers["X-CSRF-Token"] = csrfToken();
+  if (IS_TOSS) {
+    const t = tokenStore.get();
+    if (t) headers.Authorization = `Bearer ${t}`;
+    headers["X-Auth-Mode"] = "token";
+  } else if (method !== "GET") headers["X-CSRF-Token"] = csrfToken();
   let res: Response;
   try {
-    res = await fetch(url, { method, headers, body: payload, credentials: "same-origin" });
+    res = await fetch(API_BASE + url, { method, headers, body: payload, credentials: IS_TOSS ? "omit" : "same-origin" });
   } catch {
     throw new ApiError(0, "NETWORK", "인터넷 연결을 확인해 주세요.");
   }
@@ -65,6 +70,11 @@ export const api = {
 
 export async function downloadFile(url: string, filename: string) {
   const blob = await api.blob(url);
+  if (IS_TOSS) {
+    // 토스 WebView 는 <a download> 가 동작하지 않을 수 있어 SDK 파일 저장을 사용
+    const { saveFileInToss } = await import("./tossBridge");
+    return saveFileInToss(blob, filename);
+  }
   const href = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = href;

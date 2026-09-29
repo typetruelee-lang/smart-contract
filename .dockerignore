@@ -1,0 +1,16 @@
+**/node_modules
+**/.venv
+**/__pycache__
+**/.pytest_cache
+**/dist
+**/*.ait
+.git
+.env
+.env.local
+.env.*.local
+frontend/.env.toss
+test-results
+FINAL_REVIEW
+e2e
+samples
+contracts/cache

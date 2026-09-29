@@ -5,7 +5,7 @@ export function Page({ children, title, back = true, right, onBack }: { children
   const nav = useNavigate();
   return (
     <div className="mx-auto flex min-h-dvh max-w-[480px] flex-col bg-white">
-      <header className="sticky top-0 z-20 flex h-14 items-center gap-2 bg-white/95 px-2 backdrop-blur">
+      <header className="sticky top-0 z-20 flex h-14 items-center gap-2 bg-white px-2">
         {back ? (
           <button aria-label="뒤로가기" onClick={() => (onBack ? onBack() : window.history.length > 1 ? nav(-1) : nav("/"))} className="grid h-10 w-10 place-items-center rounded-full text-grey-800 active:bg-grey-100">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M15 5l-7 7 7 7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -141,8 +141,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<Toast[]>([]);
   const push = useCallback((text: string, tone: Toast["tone"] = "info") => {
     const id = Date.now() + Math.random();
-    setItems((x) => [...x, { id, text, tone }]);
-    setTimeout(() => setItems((x) => x.filter((t) => t.id !== id)), 3200);
+    setItems([{ id, text, tone }]); // 한 번에 하나만 (겹쳐 쌓이지 않게)
+    setTimeout(() => setItems((x) => x.filter((t) => t.id !== id)), tone === "error" ? 3500 : 2200);
   }, []);
   return (
     <ToastCtx.Provider value={push}>
