@@ -1,25 +1,30 @@
 {
-  "generated_at": "2026-09-29 23:02:10 UTC",
+  "generated_at": "2026-09-29 23:19:52 UTC",
   "suites": {
     "backend (pytest)": {
-      "passed": 177,
+      "passed": 179,
       "failed": 0,
       "skipped": 0
     },
     "frontend (vitest)": {
-      "passed": 10,
+      "passed": 20,
       "failed": 0,
       "skipped": 0
     },
     "e2e-functional (playwright)": {
-      "passed": 5,
-      "failed": 1,
-      "skipped": 10
+      "passed": 17,
+      "failed": 0,
+      "skipped": 0
+    },
+    "e2e-visual (playwright)": {
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0
     }
   },
-  "passed": 192,
-  "failed": 1,
-  "skipped": 10,
+  "passed": 217,
+  "failed": 0,
+  "skipped": 0,
   "typecheck_ok": true,
   "build_ok": true,
   "ait_build_ok": true,
@@ -28,11 +33,11 @@
   "security": {
     "bandit_high": 0,
     "bandit_medium": 0,
-    "bandit_low": 14,
-    "pip_audit_vulnerabilities": 89,
+    "bandit_low": 0,
+    "pip_audit_vulnerabilities": 0,
     "npm_audit": {
       "critical": 0,
-      "high": 3,
+      "high": 0,
       "moderate": 0,
       "low": 0
     },
@@ -46,9 +51,9 @@
     "web_build_exit": "0",
     "contract_compile_exit": "0",
     "e2e_exit": "0",
-    "bandit_exit": "1",
-    "pip_audit_exit": "1",
-    "npm_audit_exit": "1",
+    "bandit_exit": "0",
+    "pip_audit_exit": "0",
+    "npm_audit_exit": "0",
     "secret_scan_exit": "0"
   }
 }

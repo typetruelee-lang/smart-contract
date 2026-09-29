@@ -13,6 +13,7 @@ export interface User {
 interface AuthState {
   user: User | null;
   loading: boolean;
+  sessionExpired: boolean;
   login: (testUser?: string) => Promise<void>;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
@@ -24,6 +25,7 @@ export const useAuth = () => useContext(Ctx);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [sessionExpired, setSessionExpired] = useState(false);
   const userRef = useRef<User | null>(null);
   userRef.current = user;
   const nav = useNavigate();
@@ -53,6 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const off = onAuthError((e) => {
       const wasLoggedIn = userRef.current !== null;
+      if (e.code === "SESSION_EXPIRED") setSessionExpired(true);
       setUser(null);
       if (!wasLoggedIn && e.code !== "SESSION_EXPIRED") return; // 비로그인 상태의 401 은 각 화면이 처리
       if (window.location.pathname.startsWith("/login") || window.location.pathname.startsWith("/verify")) return;
@@ -69,6 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const r = await bridge.appLogin(testUser);
     const res = await api.post<{ user: User; access_token?: string }>("/api/auth/toss/login", { authorization_code: r.authorizationCode, referrer: r.referrer });
     if (IS_TOSS && res.access_token) tokenStore.set(res.access_token);
+    setSessionExpired(false);
     setUser(res.user);
   }, []);
 
@@ -79,13 +83,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   void loc;
-  return <Ctx.Provider value={{ user, loading, login, logout, refresh }}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={{ user, loading, sessionExpired, login, logout, refresh }}>{children}</Ctx.Provider>;
 }
 
 export function RequireAuth({ children }: { children: ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, loading, sessionExpired } = useAuth();
   const loc = useLocation();
   if (loading) return <Loading />;
-  if (!user) return <Navigate to={`/login?next=${encodeURIComponent(loc.pathname + loc.search)}`} replace />;
+  if (!user) return <Navigate to={`/login?next=${encodeURIComponent(loc.pathname + loc.search)}${sessionExpired ? "&expired=1" : ""}`} replace />;
   return <>{children}</>;
 }

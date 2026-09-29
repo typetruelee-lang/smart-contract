@@ -17,6 +17,7 @@ x-backend-env: &backend-env
   IDENTITY_PROVIDER: mock
   SIGNATURE_PROVIDER: development
   OCR_PROVIDER: local
+  TEST_RESULTS_PATH: /app/test-results/summary.json
 
 services:
   db:
@@ -52,7 +53,7 @@ services:
     env_file:
       - path: .env.local
         required: false
-    volumes: [secrets:/data]
+    volumes: [secrets:/data, ./test-results:/app/test-results:ro]   # make test 결과를 관리자 화면에 표시
     depends_on:
       db: { condition: service_healthy }
       redis: { condition: service_healthy }

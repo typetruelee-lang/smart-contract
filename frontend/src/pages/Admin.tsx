@@ -35,7 +35,7 @@ function detail(d: unknown): string {
 interface Status {
   environment: string;
   components: Record<string, { ok: boolean; detail: unknown; ms: number }>;
-  providers: Record<string, { requested: string; active: string; fallback: boolean; reason: string }>;
+  providers: Record<string, { requested: string; active: string; fallback: boolean; reason: string; dev_only: boolean }>;
   anchor_jobs: Record<string, number>;
   tests: null | { passed: number; failed: number; skipped?: number; generated_at: string; suites: Record<string, { passed: number; failed: number; skipped?: number }>; visual_review_ok?: boolean; build_ok?: boolean };
   security: { warnings: string[] };
@@ -111,7 +111,7 @@ export default function Admin() {
       <h2 className="mt-6 mb-2 text-[17px] font-bold">Providers</h2>
       <Card className="p-4">
         {Object.entries(s.providers).map(([k, v]) => (
-          <Row key={k} label={k}>{v.active} {v.active === "mock" || v.active === "local" ? <Badge tone="orange">개발용</Badge> : <Badge tone="green">운영</Badge>}</Row>
+          <Row key={k} label={k}>{v.active} {v.dev_only ? <Badge tone="orange">개발용</Badge> : <Badge tone="green">운영</Badge>}</Row>
         ))}
       </Card>
 

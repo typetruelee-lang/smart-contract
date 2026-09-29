@@ -146,18 +146,26 @@ def status(db: Session = Depends(get_db)):
     warnings = security_warnings()
     all_ok = all(c["ok"] for c in components.values())
     tests_ok = bool(tests) and tests.get("failed", 1) == 0 and tests.get("passed", 0) > 0 and tests.get("visual_review_ok", False) and tests.get("build_ok", False)
-    mocks = {k: v for k, v in PROVIDER_STATUS.items() if v["active"] in ("mock", "local")}
+    def dev_only(kind: str, v: dict) -> bool:
+        if kind == "ocr" and v["active"] == "local":
+            return False  # 로컬 Tesseract 는 운영에서도 사용 가능 (외부 OCR 은 선택)
+        if v["active"] in ("mock", "local", "development"):
+            return True
+        # 로컬 개발 체인(Hardhat 등)은 운영 체인이 아니다
+        return kind == "blockchain" and any(x in s.BLOCKCHAIN_NETWORK.lower() for x in ("local", "hardhat", "mock"))
+
+    mocks = {k: v for k, v in PROVIDER_STATUS.items() if dev_only(k, v)}
     return {
         "environment": s.APP_ENV,
         "components": components,
-        "providers": PROVIDER_STATUS,
+        "providers": {k: {**v, "dev_only": dev_only(k, v)} for k, v in PROVIDER_STATUS.items()},
         "anchor_jobs": anchors,
         "tests": tests,
         "security": {"warnings": warnings},
         "readiness": {
             "development_complete": all_ok and tests_ok,
             "production_ready": all_ok and tests_ok and not mocks and s.is_production and not warnings,
-            "production_blockers": [f"{k}: mock/local 사용 중" for k in mocks] + ([] if s.is_production else ["APP_ENV != production"]) + warnings,
+            "production_blockers": [f"{k}: 개발용({v['active']}{', ' + s.BLOCKCHAIN_NETWORK if k == 'blockchain' else ''}) 사용 중" for k, v in mocks.items()] + ([] if s.is_production else ["APP_ENV != production"]) + warnings,
         },
         "config": {"blockchain_enabled": s.BLOCKCHAIN_ENABLED, "blockchain_price": s.BLOCKCHAIN_PRICE, "anchor_mode": s.ANCHOR_MODE,
                    "retention_policies": retention.load_policies()},
