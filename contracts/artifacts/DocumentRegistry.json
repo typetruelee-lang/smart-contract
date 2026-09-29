@@ -1,0 +1,163 @@
+{
+  "contractName": "DocumentRegistry",
+  "compiler": "0.8.24+commit.e11b9ed9.Emscripten.clang",
+  "abi": [
+    {
+      "inputs": [],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [],
+      "name": "AlreadyRegistered",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "EmptyHash",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "NotOwner",
+      "type": "error"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "documentHash",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint16",
+          "name": "version",
+          "type": "uint16"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint64",
+          "name": "timestamp",
+          "type": "uint64"
+        }
+      ],
+      "name": "DocumentRegistered",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "merkleRoot",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint64",
+          "name": "timestamp",
+          "type": "uint64"
+        }
+      ],
+      "name": "RootRegistered",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "documentHash",
+          "type": "bytes32"
+        }
+      ],
+      "name": "get",
+      "outputs": [
+        {
+          "internalType": "uint64",
+          "name": "timestamp",
+          "type": "uint64"
+        },
+        {
+          "internalType": "uint16",
+          "name": "version",
+          "type": "uint16"
+        },
+        {
+          "internalType": "bool",
+          "name": "exists",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "merkleRoot",
+          "type": "bytes32"
+        }
+      ],
+      "name": "getRoot",
+      "outputs": [
+        {
+          "internalType": "uint64",
+          "name": "timestamp",
+          "type": "uint64"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "documentHash",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "uint16",
+          "name": "version",
+          "type": "uint16"
+        }
+      ],
+      "name": "register",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "merkleRoot",
+          "type": "bytes32"
+        }
+      ],
+      "name": "registerRoot",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x60a060405234801561001057600080fd5b503360805260805161047461003d6000396000818160a9015281816101a301526102a601526104746000f3fe608060405234801561001057600080fd5b50600436106100575760003560e01c806384f942211461005c5780638da5cb5b146100a45780638eaa6ac0146100e357806395d07edb14610170578063cde7f76014610185575b600080fd5b61008661006a3660046103ee565b60009081526001602052604090205467ffffffffffffffff1690565b60405167ffffffffffffffff90911681526020015b60405180910390f35b6100cb7f000000000000000000000000000000000000000000000000000000000000000081565b6040516001600160a01b03909116815260200161009b565b6101456100f13660046103ee565b600090815260208181526040918290208251606081018452905467ffffffffffffffff8116808352600160401b820461ffff16938301849052600160501b90910460ff161515919093018190529192909190565b6040805167ffffffffffffffff909416845261ffff909216602084015215159082015260600161009b565b61018361017e3660046103ee565b610198565b005b610183610193366004610407565b61029b565b336001600160a01b037f000000000000000000000000000000000000000000000000000000000000000016146101e1576040516330cd747160e01b815260040160405180910390fd5b806101ff57604051631c37cddf60e21b815260040160405180910390fd5b60008181526001602052604090205467ffffffffffffffff161561023657604051630ea075bf60e21b815260040160405180910390fd5b600081815260016020908152604091829020805467ffffffffffffffff19164267ffffffffffffffff16908117909155915191825282917f5c4e20998bfcbb6497b2464a0ba4f7987d5928983c18cbfc8bc20ef5f9556f0e910160405180910390a250565b336001600160a01b037f000000000000000000000000000000000000000000000000000000000000000016146102e4576040516330cd747160e01b815260040160405180910390fd5b8161030257604051631c37cddf60e21b815260040160405180910390fd5b600082815260208190526040902054600160501b900460ff161561033957604051630ea075bf60e21b815260040160405180910390fd5b6040805160608101825267ffffffffffffffff42811680835261ffff8581166020808601828152600187890190815260008b815280845289902097518854925191511515600160501b0260ff60501b1992909616600160401b0269ffffffffffffffffffff1990931697169690961717949094169190911790935583519283529082015283917f46b220c041395dbc44db4c1cad299d44b923b48baae6f043ca63471161dddeb3910160405180910390a25050565b60006020828403121561040057600080fd5b5035919050565b6000806040838503121561041a57600080fd5b82359150602083013561ffff8116811461043357600080fd5b80915050925092905056fea2646970667358221220bd2524966d80051111ffc939c5164c85713c26e29c5a22406896e2a60ef9bc8a64736f6c63430008180033"
+}

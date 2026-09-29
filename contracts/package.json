@@ -1,0 +1,12 @@
+{
+  "name": "kz-contracts",
+  "private": true,
+  "scripts": {
+    "compile": "node scripts/compile.mjs",
+    "node": "hardhat node --hostname 0.0.0.0"
+  },
+  "devDependencies": {
+    "solc": "0.8.24",
+    "hardhat": "2.22.17"
+  }
+}

@@ -1,0 +1,42 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>전자계약 확인서</title>
+<style>{% include "_base.css" %}
+.head { display: flex; justify-content: space-between; align-items: flex-start; }
+.qr { text-align: center; font-size: 8pt; color: #6b7684; }
+.qr img { width: 110px; height: 110px; }
+</style></head><body>
+<div class="head"><div><h1 style="text-align:left">전자계약 확인서</h1>
+<div class="small">발급 시각 {{ issued_at | kst }}</div></div>
+<div class="qr"><img src="{{ qr }}" alt="검증 QR"><br>QR 로 검증하기</div></div>
+<h2>계약 정보</h2>
+<table>
+<tr><th>계약번호</th><td>{{ contract_no }}</td></tr>
+<tr><th>계약명</th><td>{{ title }}</td></tr>
+<tr><th>계약 상태</th><td><span class="ok">계약 완료</span></td></tr>
+<tr><th>계약 완료 시각</th><td>{{ completed_at | kst }}</td></tr>
+<tr><th>최종 문서 버전</th><td>v{{ version_no }}</td></tr>
+</table>
+<h2>당사자</h2>
+<table>
+<tr><th>구분</th><td><b>당사자 / 본인확인 / 전자서명 / 서명 시각</b></td></tr>
+{% for p in parties %}
+<tr><th>{{ p.role_label }}</th><td>{{ p.name_masked }} / {% if p.identity_status == "VERIFIED" %}본인확인 완료{% else %}본인확인 미완료{% endif %} / {% if p.signed_at %}전자서명 완료{% else %}미서명{% endif %} / {{ p.signed_at | kst }}</td></tr>
+{% endfor %}
+</table>
+<h2>계약서의 디지털 지문</h2>
+<table>
+<tr><th>Document Hash<br><span class="small">SHA-256 (계약서 PDF 파일)</span></th><td class="mono">{{ document_hash }}</td></tr>
+<tr><th>검증 ID</th><td><b>{{ verification_id }}</b></td></tr>
+<tr><th>검증 주소</th><td class="mono">{{ verify_url }}</td></tr>
+</table>
+<h2>블록체인 기록</h2>
+<table>
+<tr><th>기록 상태</th><td>{% if anchor.status == "CONFIRMED" %}<span class="ok">기록 완료</span>{% elif anchor.status in ("PENDING", "RETRY", "SUBMITTED") %}<span class="warn">기록 진행 중</span>{% elif anchor.status == "FAILED" %}<span class="warn">기록 실패 (고객센터 문의)</span>{% else %}기록하지 않음 (선택 기능){% endif %}</td></tr>
+{% if anchor.tx_id %}<tr><th>Blockchain TX</th><td class="mono">{{ anchor.tx_id }}</td></tr>
+<tr><th>네트워크</th><td>{{ anchor.network }}</td></tr>
+<tr><th>기록 시각</th><td>{{ anchor.confirmed_at | kst }}</td></tr>{% endif %}
+{% if anchor.merkle_root %}<tr><th>Merkle Root</th><td class="mono">{{ anchor.merkle_root }}</td></tr>{% endif %}
+</table>
+<p class="small">· 이 확인서는 계약서 원본이 아니며, 계약서 PDF 의 디지털 지문(Hash)과 서명 기록을 증명합니다.<br>
+· 계약서 PDF 를 검증 페이지에 올리면 파일이 한 글자라도 바뀌었는지 확인할 수 있습니다.<br>
+· 블록체인에는 개인정보나 계약 내용이 아닌 디지털 지문만 기록됩니다.</p>
+</body></html>

@@ -1,0 +1,20 @@
+@page { size: A4; margin: 18mm 16mm 20mm 16mm; }
+* { box-sizing: border-box; }
+body { font-family: "Noto Sans CJK KR", "Noto Sans KR", "Apple SD Gothic Neo", sans-serif; color: #191f28; font-size: 11pt; line-height: 1.7; margin: 0; }
+h1 { font-size: 20pt; text-align: center; margin: 0 0 6mm; letter-spacing: 1px; }
+.meta { color: #6b7684; font-size: 8.5pt; text-align: right; margin-bottom: 6mm; }
+.body { white-space: pre-wrap; word-break: break-all; }
+.value { font-weight: 700; border-bottom: 1px solid #3182f6; padding: 0 2px; }
+.empty { color: #b0b8c1; }
+.long { display: inline-block; width: 100%; }
+.sig { height: 34px; vertical-align: middle; }
+.sigbox { display: inline-block; min-width: 80px; border-bottom: 1px dashed #8b95a1; color: #8b95a1; font-size: 8pt; }
+.page-break { page-break-before: always; }
+table { width: 100%; border-collapse: collapse; font-size: 9.5pt; }
+th, td { border: 1px solid #d1d6db; padding: 5px 8px; text-align: left; vertical-align: top; }
+th { background: #f2f4f6; width: 30%; font-weight: 600; }
+.mono { font-family: "DejaVu Sans Mono", monospace; font-size: 8pt; word-break: break-all; }
+.small { font-size: 8.5pt; color: #6b7684; }
+h2 { font-size: 12.5pt; margin: 4.5mm 0 2.5mm; }
+.ok { color: #0b8a4a; font-weight: 700; }
+.warn { color: #d97706; font-weight: 700; }

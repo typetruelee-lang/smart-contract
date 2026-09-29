@@ -1,0 +1,10 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><style>
+@page { size: {{ w }}pt {{ h }}pt; margin: 0; }
+html, body { margin: 0; padding: 0; width: {{ w }}pt; height: {{ h }}pt; background: transparent; }
+body { position: relative; font-family: "Noto Sans CJK KR", "Noto Sans KR", sans-serif; color: #0b1f4d; }
+.f { position: absolute; overflow: hidden; display: flex; align-items: center; white-space: pre-wrap; line-height: 1.2; font-weight: 600; }
+.f.long { align-items: flex-start; }
+.f img { max-width: 100%; max-height: 100%; }
+</style></head><body>
+{% for it in items %}<div class="f{% if it.type == 'LONG_TEXT' %} long{% endif %}" style="left:{{ it.x }}%;top:{{ it.y }}%;width:{{ it.w }}%;height:{{ it.h }}%;{% if it.size %}font-size:{{ it.size }}pt{% endif %}">{% if it.type == 'SIGNATURE' %}{% if it.src %}<img src="{{ it.src }}" alt="">{% endif %}{% else %}{{ it.text }}{% endif %}</div>{% endfor %}
+</body></html>
