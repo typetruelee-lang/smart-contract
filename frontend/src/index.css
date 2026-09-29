@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+@theme {
+  --color-toss-blue: #3182f6;
+  --color-toss-blue-dark: #1b64da;
+  --color-toss-blue-light: #e8f3ff;
+  --color-grey-50: #f9fafb;
+  --color-grey-100: #f2f4f6;
+  --color-grey-200: #e5e8eb;
+  --color-grey-300: #d1d6db;
+  --color-grey-400: #b0b8c1;
+  --color-grey-500: #8b95a1;
+  --color-grey-600: #6b7684;
+  --color-grey-700: #4e5968;
+  --color-grey-800: #333d4b;
+  --color-grey-900: #191f28;
+  --color-ok: #0b8a4a;
+  --color-warn: #f04452;
+  --font-sans: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", "Noto Sans CJK KR", system-ui, sans-serif;
+}
+
+html, body { background: #fff; color: var(--color-grey-900); -webkit-tap-highlight-color: transparent; }
+body { font-family: var(--font-sans); word-break: keep-all; overflow-wrap: anywhere; }
+input, textarea, select, button { font: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; }
+.safe-bottom { padding-bottom: max(16px, env(safe-area-inset-bottom)); }
