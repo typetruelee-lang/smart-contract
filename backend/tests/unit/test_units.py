@@ -337,3 +337,31 @@ def test_templates_include_employment_forms_with_notes():
         t = catalog.get_template(tid)
         FieldSpec.model_validate(t["fields"][0])
         assert any(f["type"] == "SIGNATURE" and f["assignee"] == "B" for f in t["fields"])
+
+
+def test_parttime_day_schedule_patterns():
+    from app.services.fields import BREAK_RANGE_PATTERN, WORK_RANGE_PATTERN
+    work = F("TEXT", validation={"pattern": WORK_RANGE_PATTERN, "maxLength": 13})
+    rest = F("TEXT", validation={"pattern": BREAK_RANGE_PATTERN, "maxLength": 13})
+    assert work.validation["example"] == "09:00~13:00"
+    for ok in ("09:00~13:00", "18:00 ~ 22:30", "22:00-02:00", "휴무"):
+        assert normalize_value(work, ok) == ok
+    for ok in ("12:00~12:30", "없음"):
+        assert normalize_value(rest, ok) == ok
+    for bad in ("9-13", "09:00", "휴일", "없음", "25:00~26:00"):
+        with pytest.raises(FieldValueError):
+            normalize_value(work, bad)
+    with pytest.raises(FieldValueError):
+        normalize_value(rest, "휴무")
+
+
+def test_parttime_template_requires_overtime_premium_of_50_percent():
+    from app.services import catalog
+    t = catalog.get_template("employment_parttime")
+    labels = [f["label"] for f in t["fields"]]
+    assert all(f"{d} 근로시간" in labels and f"{d} 휴게시간" in labels for d in catalog.WEEKDAYS)
+    assert "100분의 50" in t["body"] and "15시간 미만" in t["note"]
+    rate = FieldSpec(**next(f for f in t["fields"] if f["label"] == "초과근로 가산임금률"))
+    assert normalize_value(rate, "50") == "50"
+    with pytest.raises(FieldValueError):
+        normalize_value(rate, "30")

@@ -27,10 +27,20 @@ LABEL_RE = re.compile(r"^[^{}<>\n\r]{1,40}$")
 PHONE_PATTERN = r"^0\d{1,2}-?\d{3,4}-?\d{4}$"
 EMAIL_PATTERN = r"^[^@\s]+@[^@\s]+\.[^@\s]+$"
 TIME_PATTERN = r"^([01]\d|2[0-3]):[0-5]\d$"
+_HM = r"([01]\d|2[0-3]):[0-5]\d"
+WORK_RANGE_PATTERN = rf"^(휴무|{_HM} ?[~-] ?{_HM})$"   # 요일별 근로시간: 09:00~13:00 또는 휴무
+BREAK_RANGE_PATTERN = rf"^(없음|{_HM} ?[~-] ?{_HM})$"  # 요일별 휴게시간: 12:00~12:30 또는 없음
 PATTERN_HINTS = {
     PHONE_PATTERN: "전화번호 형식이 올바르지 않아요. (예: 010-1234-5678)",
     EMAIL_PATTERN: "이메일 형식이 올바르지 않아요.",
     TIME_PATTERN: "시각을 24시간제 HH:MM 으로 입력해 주세요. (예: 09:00)",
+    WORK_RANGE_PATTERN: "일하는 날은 09:00~13:00 처럼, 쉬는 날은 '휴무'로 입력해 주세요.",
+    BREAK_RANGE_PATTERN: "휴게시간은 12:00~12:30 처럼, 없으면 '없음'으로 입력해 주세요.",
+}
+# 입력칸 안내(placeholder)와 테스트 예시에 쓰는 올바른 값
+PATTERN_EXAMPLES = {
+    PHONE_PATTERN: "010-1234-5678", EMAIL_PATTERN: "name@example.com", TIME_PATTERN: "09:00",
+    WORK_RANGE_PATTERN: "09:00~13:00", BREAK_RANGE_PATTERN: "없음",
 }
 
 
@@ -77,6 +87,7 @@ class FieldSpec(BaseModel):
         if v.get("pattern") in PATTERN_HINTS:
             out["pattern"] = v["pattern"]
             out["hint"] = PATTERN_HINTS[v["pattern"]]
+            out["example"] = PATTERN_EXAMPLES[v["pattern"]]
         for k in ("maxLength", "min", "max"):
             x = v.get(k)
             if isinstance(x, (int, float)) and not isinstance(x, bool) and x >= 0:

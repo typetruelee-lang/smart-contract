@@ -196,6 +196,28 @@ test("일용근로자 표준근로계약서: 안내 표시 + 근로시간 형식
   await expect(A.page.getByTestId("contract-preview")).toContainText("09:00");
 });
 
+test("단시간근로자 표준근로계약서: 요일별 근로시간 형식 + 가산임금률 50% 미만 거부", async ({ browser }) => {
+  const A = await newParty(browser);
+  await login(A.page, "hong");
+  await A.page.goto("/create/template");
+  await expect(A.page.getByTestId("template-note-employment_parttime")).toContainText("15시간 미만");
+  await A.page.getByTestId("template-employment_parttime").click();
+  await A.page.waitForURL(/\/contracts\/[a-f0-9]{32}$/);
+  await expect(A.page.getByTestId("input-월요일 근로시간")).toHaveAttribute("placeholder", "예: 09:00~13:00");
+  await fillFields(A.page, { "월요일 근로시간": "9시~13시" });
+  await A.page.getByTestId("save-values").click();
+  await expect(A.page.getByText("쉬는 날은 '휴무'").first()).toBeVisible();
+  await fillFields(A.page, { "월요일 근로시간": "09:00~13:00", "화요일 근로시간": "휴무", "초과근로 가산임금률": "30" });
+  await A.page.getByTestId("save-values").click();
+  await expect(A.page.getByText("50 이상이어야 해요").first()).toBeVisible();
+  await fillFields(A.page, { "초과근로 가산임금률": "50" });
+  await A.page.getByTestId("save-values").click();
+  await expect(A.page.getByRole("alert").first()).toContainText("저장했어요");
+  await A.page.getByTestId("tab-preview").click();
+  await expect(A.page.getByTestId("contract-preview")).toContainText("단시간근로자 표준근로계약서");
+  await expect(A.page.getByTestId("contract-preview")).toContainText("09:00~13:00");
+});
+
 test("내용 변경 시 새 버전 + 기존 서명 무효화 안내", async ({ browser }) => {
   const A = await newParty(browser);
   const B = await newParty(browser);

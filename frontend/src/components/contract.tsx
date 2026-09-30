@@ -102,11 +102,12 @@ export function FieldInput({ f, value, onChange, disabled, error }: { f: Field; 
         </div>
       );
     default: {
-      // 형식이 정해진 글자 칸(현재는 근로시간 HH:MM)만 서버가 pattern 을 붙여 보낸다
-      const timeLike = typeof f.validation?.pattern === "string";
+      // 형식이 정해진 글자 칸(근로시간 09:00, 요일별 09:00~13:00 등)은 서버가 예시 값과 길이 제한을 함께 보낸다
+      const example = typeof f.validation?.example === "string" ? f.validation.example : "";
+      const max = typeof f.validation?.maxLength === "number" ? Math.min(f.validation.maxLength, 200) : 200;
       input = (
-        <input id={id} data-testid={`input-${f.label}`} className={cls} value={s} disabled={disabled} maxLength={timeLike ? 5 : 200}
-          placeholder={timeLike ? "예: 09:00 (24시간제)" : undefined} onChange={(e) => onChange(e.target.value)} />
+        <input id={id} data-testid={`input-${f.label}`} className={cls} value={s} disabled={disabled} maxLength={max}
+          placeholder={example ? `예: ${example}` : undefined} onChange={(e) => onChange(e.target.value)} />
       );
     }
   }
