@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
+import { ClausePanel } from "../components/clauses";
 import { ContractPreview, EditPreviewToggle, FieldInput } from "../components/contract";
 import { PdfPage, usePdf } from "../components/PdfCanvas";
 import { Badge, BottomCTA, Button, Card, ErrorView, Loading, Page, Row, Sheet, useToast } from "../components/ui";
@@ -194,6 +195,11 @@ export default function ContractPage() {
                 <Row key={f.field_id} label={f.label}>{displayValue(f) || <span className="text-grey-400">입력 전</span>}</Row>
               ))}
             </Card>
+          )}
+          {c.source !== "PDF" && (
+            <div className="mt-2">
+              <ClausePanel c={c} canEdit={editable && me.role === "A"} beforeChange={saveValues} onChanged={load} />
+            </div>
           )}
         </div>
       )}

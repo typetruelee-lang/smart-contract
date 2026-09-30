@@ -202,7 +202,7 @@ def _clean_payload(title: str, body_text: str | None, fields: list[FieldSpec], s
 
 
 def create_contract(db: Session, user: User, *, title: str, contract_type: str, source: str, body_text: str | None,
-                    fields: list[FieldSpec], source_pdf: bytes | None = None) -> Contract:
+                    fields: list[FieldSpec], source_pdf: bytes | None = None, template_id: str | None = None) -> Contract:
     if contract_type not in retention.load_policies() and contract_type != "general":
         contract_type = "general"
     if source not in ("TEXT", "PDF", "TEMPLATE"):
@@ -216,6 +216,9 @@ def create_contract(db: Session, user: User, *, title: str, contract_type: str, 
     if source_pdf:
         blob = _store_blob(db, c.id, "SOURCE_PDF", source_pdf)
         extra = {"source_pdf_sha256": blob.sha256, "source_blob_id": blob.id, "pages": pdf_engine.page_sizes(source_pdf)}
+    from app.services import catalog
+    if template_id in catalog.TEMPLATES and source == "TEMPLATE":
+        extra["template_id"] = template_id
     payload = _clean_payload(title, body_text, fields, source, extra)
     v = DocumentVersion(contract_id=c.id, version_no=1, status="DRAFT", created_by=user.id, reason="최초 작성", content_hash="")
     _store_payload(v, payload)
@@ -292,14 +295,18 @@ def _modify(db: Session, c: Contract, actor: ContractParty, new_payload: dict, r
     return target
 
 
+KEEP_KEYS = ("source_pdf_sha256", "source_blob_id", "pages", "template_id", "clauses", "custom_clauses", "clauses_section_added")
+
+
 def update_content(db: Session, c: Contract, party: ContractParty, *, title: str | None, body_text: str | None,
-                   fields: list[FieldSpec], reason: str = "내용 수정") -> DocumentVersion:
+                   fields: list[FieldSpec], reason: str = "내용 수정", extra_updates: dict | None = None) -> DocumentVersion:
     _require_owner(c, party)
     _require_editable(c)
     cur = current_version(db, c)
     old = load_payload(cur)
     # 기존 값 유지: 필드 정의만 바뀌고 값이 None 으로 오면 이전 값을 유지하지 않음 (클라이언트가 전체 상태를 보냄)
-    extra = {k: old[k] for k in ("source_pdf_sha256", "source_blob_id", "pages") if k in old}
+    extra = {k: old[k] for k in KEEP_KEYS if k in old}
+    extra.update(extra_updates or {})
     # 서명 값은 서명 단계에서만 바뀐다
     old_sig = {f["field_id"]: f.get("value") for f in old.get("fields", []) if f.get("type") == "SIGNATURE"}
     new_payload = _clean_payload(title if title is not None else old["title"], body_text if body_text is not None else old.get("body_text"),
@@ -311,6 +318,24 @@ def update_content(db: Session, c: Contract, party: ContractParty, *, title: str
     c.title = new_payload["title"][:100]
     db.commit()
     return v
+
+
+def set_clauses(db: Session, c: Contract, party: ContractParty, library_ids: list[str], custom_texts: list[str]) -> DocumentVersion:
+    """특약·옵션 선택을 본문과 빈칸에 반영한다. 기존 update_content 를 거치므로 버전·서명 무효화가 그대로 적용된다."""
+    from app.services import clauses
+    _require_owner(c, party)
+    _require_editable(c)
+    if c.source == "PDF":
+        raise ContractError(422, "PDF_NO_CLAUSES", "PDF 계약서에는 특약을 추가할 수 없어요. 원본 PDF 에 직접 넣어 주세요.")
+    old = load_payload(current_version(db, c))
+    try:
+        r = clauses.apply_clauses(old, c.contract_type, old.get("template_id"), library_ids, custom_texts)
+    except clauses.ClauseError as e:
+        raise ContractError(422, "INVALID_CLAUSE", str(e)) from e
+    if r["body_text"] == old.get("body_text") and r["clauses"] == old.get("clauses", []) and r["custom_clauses"] == old.get("custom_clauses", []):
+        return current_version(db, c)
+    return update_content(db, c, party, title=None, body_text=r["body_text"], fields=[FieldSpec(**f) for f in r["fields"]], reason="특약 변경",
+                          extra_updates={k: r[k] for k in ("clauses", "custom_clauses", "clauses_section_added")})
 
 
 def fill_values(db: Session, c: Contract, party: ContractParty, values: dict[str, Any]) -> DocumentVersion:

@@ -21,6 +21,7 @@
 | 빈칸 자동 추천 | 02b-field-suggestions.png | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | OK |
 | PDF 업로드 | 03-pdf-upload.png | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | OK |
 | PDF 빈칸 편집기 | 04-field-editor.png | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | OK |
+| 특약·옵션 (추천 특약 스위치·주의 배지·직접 쓴 특약) | 04b-clauses.png | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | OK |
 | 계약서 미리보기 | 05-contract-preview.png | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | OK |
 | 초대 링크 | 05b-invite.png | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | OK |
 | 초대 수락 | 05c-invite-accept.png | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | OK |

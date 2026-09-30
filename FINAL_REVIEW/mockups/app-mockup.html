@@ -186,6 +186,29 @@ textarea.in { min-height: 86px; resize: none; }
 .qr { width: 74px; height: 74px; flex: none; background:
   conic-gradient(from 90deg at 30% 30%, #191f28 25%, transparent 0) 0 0 / 14px 14px, #fff; border: 5px solid #191f28; border-radius: 6px; }
 
+.clbox { margin-top: 18px; border: 1px solid var(--app-line); border-radius: 22px; box-shadow: 0 2px 14px rgba(0, 27, 55, .05); overflow: hidden; }
+.cl-head { display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px 16px; border: 0; background: #fff; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.cl-head .tx { flex: 1; min-width: 0; }
+.cl-head b { display: block; font-size: 16px; }
+.cl-head small { display: block; color: var(--app-muted); font-size: 13px; }
+.cl-caret { color: var(--app-muted); font-size: 18px; transition: transform .2s ease; }
+.cl-caret.up { transform: rotate(180deg); }
+.cl-body { border-top: 1px solid var(--app-line); padding: 4px 16px 16px; }
+.cl-note { margin: 10px 0 4px; background: var(--app-3); border-radius: 14px; padding: 10px 12px; font-size: 12.5px; color: var(--app-sub); }
+.cl-sub { margin: 14px 0 2px; font-size: 12.5px; font-weight: 700; color: var(--app-muted); }
+.cl-item { display: flex; gap: 12px; padding: 12px 0; border-top: 1px solid var(--app-line); }
+.cl-sub + .cl-item { border-top: 0; }
+.cl-item .tx { flex: 1; min-width: 0; }
+.cl-item b { display: block; font-size: 15px; }
+.cl-item small { display: block; font-size: 12.5px; color: var(--app-sub); line-height: 1.5; margin-top: 2px; }
+.cl-warn { display: inline-block; font-style: normal; margin-top: 6px; background: var(--app-orange-soft); color: #b45309; border-radius: 8px; padding: 3px 8px; font-size: 11.5px; line-height: 1.45; }
+.sw { position: relative; flex: none; width: 50px; height: 30px; border-radius: 999px; border: 0; background: var(--app-line); cursor: pointer; transition: background .2s ease; }
+.sw span { position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .2); transition: transform .2s ease; }
+.sw.on { background: var(--app-blue); }
+.sw.on span { transform: translateX(20px); }
+.cl-custom { display: flex; gap: 8px; align-items: flex-start; background: var(--app-3); border-radius: 14px; padding: 10px 12px; margin-top: 8px; font-size: 14px; }
+.cl-custom span { flex: 1; min-width: 0; }
+.cl-custom button { border: 0; background: transparent; color: var(--app-muted); font: inherit; font-size: 13px; cursor: pointer; }
 @media (max-width: 1040px) {
   .stage { grid-template-columns: minmax(0, 390px) minmax(0, 1fr); }
   nav.list { display: none; }
@@ -267,6 +290,11 @@ textarea.in { min-height: 86px; resize: none; }
   var OPTIONS = { "상환 방법": ["계좌이체", "현금"], "부가세 포함 여부": ["포함", "별도"], "주휴일": ["월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일", "해당 없음"], "임금 형태": ["월급", "일급", "시간급"] };
   var RULES = { TIME: [/^([01]\d|2[0-3]):[0-5]\d$/, "시각을 24시간제 HH:MM 으로 입력해 주세요. (예: 09:00)"], RANGE: [/^(휴무|([01]\d|2[0-3]):[0-5]\d ?[~-] ?([01]\d|2[0-3]):[0-5]\d)$/, "일하는 날은 09:00~13:00 처럼, 쉬는 날은 '휴무'로 입력해 주세요."], PHONE: [/^0\d{1,2}-?\d{3,4}-?\d{4}$/, "전화번호 형식이 올바르지 않아요. (예: 010-1234-5678)"], EMAIL: [/^[^@\s]+@[^@\s]+\.[^@\s]+$/, "이메일 형식이 올바르지 않아요."] };
 
+  var CLAUSES = {"loan": [{"id": "loan_late_interest", "t": "지연손해금", "x": "을이 상환일까지 갚지 않으면 상환일 다음 날부터 다 갚는 날까지 연 {지연손해금률}%의 지연손해금을 지급한다.", "c": "이자제한법상 최고이자율(연 20%)을 넘을 수 없어요.", "g": false, "p": [{"l": "지연손해금률", "ty": "NUMBER", "o": [], "v": {"min": 0, "max": 20}}]}, {"id": "loan_installment", "t": "분할상환", "x": "을은 원금을 {분할 횟수}회로 나누어 매월 {매월 상환일}일에 갚는다.", "c": null, "g": false, "p": [{"l": "분할 횟수", "ty": "NUMBER", "o": [], "v": {"min": 2, "max": 120}}, {"l": "매월 상환일", "ty": "NUMBER", "o": [], "v": {"min": 1, "max": 31}}]}, {"id": "loan_interest_day", "t": "이자 지급일", "x": "이자는 매월 {이자 지급일}일에 지급한다.", "c": null, "g": false, "p": [{"l": "이자 지급일", "ty": "NUMBER", "o": [], "v": {"min": 1, "max": 31}}]}, {"id": "loan_prepay", "t": "조기상환 허용", "x": "을은 상환일 전에도 언제든지 원금의 전부 또는 일부를 갚을 수 있으며, 이 경우 이자는 실제로 빌린 기간만큼만 계산한다.", "c": null, "g": false, "p": []}, {"id": "court", "t": "관할 법원", "x": "이 계약에 관한 분쟁은 {관할법원}을 제1심 관할 법원으로 한다.", "c": null, "g": true, "p": [{"l": "관할법원", "ty": "TEXT", "o": [], "v": {}}]}, {"id": "amend_in_writing", "t": "변경은 서면 합의로만", "x": "이 계약의 변경은 양 당사자가 서면(전자문서를 포함한다)으로 합의한 경우에만 효력이 있다.", "c": null, "g": true, "p": []}, {"id": "confidential", "t": "비밀유지", "x": "당사자는 이 계약으로 알게 된 상대방의 정보를 상대방의 동의 없이 제3자에게 누설하지 않는다.", "c": null, "g": true, "p": []}, {"id": "notice", "t": "통지 방법", "x": "이 계약에 관한 통지는 계약서에 적힌 연락처로 문자메시지 또는 전자우편을 보내는 방법으로 할 수 있다.", "c": null, "g": true, "p": []}], "service": [{"id": "svc_advance", "t": "선급금", "x": "갑은 {선급금 지급일}까지 용역 대금 중 {선급금}원을 먼저 지급하고, 나머지는 검수 완료 후 지급한다.", "c": null, "g": false, "p": [{"l": "선급금", "ty": "NUMBER", "o": [], "v": {}}, {"l": "선급금 지급일", "ty": "DATE", "o": [], "v": {}}]}, {"id": "svc_copyright", "t": "저작권 귀속", "x": "결과물의 저작재산권은 대금 전액이 지급된 때에 갑에게 이전된다. 다만 을은 결과물을 자신의 포트폴리오로 사용할 수 있다.", "c": null, "g": false, "p": []}, {"id": "svc_revisions", "t": "무상 수정 횟수", "x": "검수 과정에서 을은 {무상 수정 횟수}회까지 무상으로 수정하며, 그 이후의 수정은 별도로 협의한다.", "c": null, "g": false, "p": [{"l": "무상 수정 횟수", "ty": "NUMBER", "o": [], "v": {"min": 0, "max": 50}}]}, {"id": "svc_delay_penalty", "t": "지체상금", "x": "을이 기한까지 용역을 완료하지 못하면 지체 1일마다 대금의 {지체상금률}%를 지체상금으로 지급한다. 다만 지체상금 총액은 대금의 10%를 넘지 않는다.", "c": "지나치게 많은 지체상금은 법원이 줄일 수 있어요(민법 제398조).", "g": false, "p": [{"l": "지체상금률", "ty": "NUMBER", "o": [], "v": {"min": 0, "max": 1}}]}, {"id": "svc_warranty", "t": "하자보수", "x": "을은 검수 완료 후 {하자보수 기간}일 동안 결과물의 하자를 무상으로 보수한다.", "c": null, "g": false, "p": [{"l": "하자보수 기간", "ty": "NUMBER", "o": [], "v": {"min": 1, "max": 3650}}]}, {"id": "court", "t": "관할 법원", "x": "이 계약에 관한 분쟁은 {관할법원}을 제1심 관할 법원으로 한다.", "c": null, "g": true, "p": [{"l": "관할법원", "ty": "TEXT", "o": [], "v": {}}]}, {"id": "amend_in_writing", "t": "변경은 서면 합의로만", "x": "이 계약의 변경은 양 당사자가 서면(전자문서를 포함한다)으로 합의한 경우에만 효력이 있다.", "c": null, "g": true, "p": []}, {"id": "confidential", "t": "비밀유지", "x": "당사자는 이 계약으로 알게 된 상대방의 정보를 상대방의 동의 없이 제3자에게 누설하지 않는다.", "c": null, "g": true, "p": []}, {"id": "notice", "t": "통지 방법", "x": "이 계약에 관한 통지는 계약서에 적힌 연락처로 문자메시지 또는 전자우편을 보내는 방법으로 할 수 있다.", "c": null, "g": true, "p": []}], "goods": [{"id": "goods_deposit", "t": "계약금", "x": "을은 계약 체결 시 계약금 {계약금}원을 지급하고 잔금은 인도할 때 지급한다. 중도금이나 잔금을 치르기 전까지 을은 계약금을 포기하고, 갑은 그 두 배를 돌려주고 계약을 해제할 수 있다.", "c": "민법 제565조(해약금)에 따른 문구예요.", "g": false, "p": [{"l": "계약금", "ty": "NUMBER", "o": [], "v": {}}]}, {"id": "goods_shipping", "t": "배송비 부담", "x": "물품의 배송비는 {배송비 부담자}가 부담한다.", "c": null, "g": false, "p": [{"l": "배송비 부담자", "ty": "SELECT", "o": ["매도인(갑)", "매수인(을)"], "v": {}}]}, {"id": "goods_title", "t": "소유권 이전 시점", "x": "물품의 소유권은 갑이 대금 전액을 받은 때에 을에게 이전된다.", "c": null, "g": false, "p": []}, {"id": "goods_as_is", "t": "중고 현상태 거래", "x": "을은 물품의 현재 상태를 확인하였고, 갑이 미리 알린 하자({고지한 하자})에 대해서는 책임을 묻지 않는다.", "c": "매도인이 알고도 알리지 않은 하자까지 면책되지는 않아요(민법 제584조).", "g": false, "p": [{"l": "고지한 하자", "ty": "TEXT", "o": [], "v": {}}]}, {"id": "goods_defect_notice", "t": "하자 통지 기간", "x": "을은 물품을 받은 날부터 {하자 통지 기간}일 이내에 하자를 알려야 교환 또는 환불을 요구할 수 있다.", "c": null, "g": false, "p": [{"l": "하자 통지 기간", "ty": "NUMBER", "o": [], "v": {"min": 1, "max": 365}}]}, {"id": "court", "t": "관할 법원", "x": "이 계약에 관한 분쟁은 {관할법원}을 제1심 관할 법원으로 한다.", "c": null, "g": true, "p": [{"l": "관할법원", "ty": "TEXT", "o": [], "v": {}}]}, {"id": "amend_in_writing", "t": "변경은 서면 합의로만", "x": "이 계약의 변경은 양 당사자가 서면(전자문서를 포함한다)으로 합의한 경우에만 효력이 있다.", "c": null, "g": true, "p": []}, {"id": "confidential", "t": "비밀유지", "x": "당사자는 이 계약으로 알게 된 상대방의 정보를 상대방의 동의 없이 제3자에게 누설하지 않는다.", "c": null, "g": true, "p": []}, {"id": "notice", "t": "통지 방법", "x": "이 계약에 관한 통지는 계약서에 적힌 연락처로 문자메시지 또는 전자우편을 보내는 방법으로 할 수 있다.", "c": null, "g": true, "p": []}], "employment": [{"id": "emp_secret", "t": "영업비밀 보호", "x": "근로자는 재직 중 및 퇴직 후 {비밀유지 기간}년간 업무상 알게 된 회사의 영업비밀을 누설하지 않는다.", "c": null, "g": false, "p": [{"l": "비밀유지 기간", "ty": "NUMBER", "o": [], "v": {"min": 1, "max": 5}}]}, {"id": "emp_meal", "t": "식대 지급", "x": "사업주는 매월 식대 {식대}원을 임금과 함께 지급한다.", "c": null, "g": false, "p": [{"l": "식대", "ty": "NUMBER", "o": [], "v": {}}]}, {"id": "emp_relocate", "t": "근무장소 변경", "x": "업무상 필요한 경우 사업주는 근로자와 협의하여 근무장소를 변경할 수 있다.", "c": null, "g": false, "p": []}, {"id": "emp_probation", "t": "수습기간", "x": "근로개시일부터 {수습 기간}개월은 수습기간으로 하며, 수습기간 중 임금은 정상 임금의 {수습 임금 비율}%로 한다.", "c": "최저임금 감액은 1년 이상 계약·수습 3개월 이내만 가능하고, 단순노무직은 감액할 수 없어요(최저임금법 제5조).", "g": false, "p": [{"l": "수습 기간", "ty": "NUMBER", "o": [], "v": {"min": 1, "max": 3}}, {"l": "수습 임금 비율", "ty": "NUMBER", "o": [], "v": {"min": 90, "max": 100}}]}, {"id": "court", "t": "관할 법원", "x": "이 계약에 관한 분쟁은 {관할법원}을 제1심 관할 법원으로 한다.", "c": null, "g": true, "p": [{"l": "관할법원", "ty": "TEXT", "o": [], "v": {}}]}, {"id": "amend_in_writing", "t": "변경은 서면 합의로만", "x": "이 계약의 변경은 양 당사자가 서면(전자문서를 포함한다)으로 합의한 경우에만 효력이 있다.", "c": null, "g": true, "p": []}, {"id": "confidential", "t": "비밀유지", "x": "당사자는 이 계약으로 알게 된 상대방의 정보를 상대방의 동의 없이 제3자에게 누설하지 않는다.", "c": null, "g": true, "p": []}, {"id": "notice", "t": "통지 방법", "x": "이 계약에 관한 통지는 계약서에 적힌 연락처로 문자메시지 또는 전자우편을 보내는 방법으로 할 수 있다.", "c": null, "g": true, "p": []}], "daily": [{"id": "emp_secret", "t": "영업비밀 보호", "x": "근로자는 재직 중 및 퇴직 후 {비밀유지 기간}년간 업무상 알게 된 회사의 영업비밀을 누설하지 않는다.", "c": null, "g": false, "p": [{"l": "비밀유지 기간", "ty": "NUMBER", "o": [], "v": {"min": 1, "max": 5}}]}, {"id": "emp_meal", "t": "식대 지급", "x": "사업주는 매월 식대 {식대}원을 임금과 함께 지급한다.", "c": null, "g": false, "p": [{"l": "식대", "ty": "NUMBER", "o": [], "v": {}}]}, {"id": "daily_idle", "t": "작업 중지 시 휴업수당", "x": "사업주의 사정으로 일을 하지 못한 날에는 근로기준법 제46조에 따라 휴업수당을 지급한다.", "c": null, "g": false, "p": []}, {"id": "court", "t": "관할 법원", "x": "이 계약에 관한 분쟁은 {관할법원}을 제1심 관할 법원으로 한다.", "c": null, "g": true, "p": [{"l": "관할법원", "ty": "TEXT", "o": [], "v": {}}]}, {"id": "amend_in_writing", "t": "변경은 서면 합의로만", "x": "이 계약의 변경은 양 당사자가 서면(전자문서를 포함한다)으로 합의한 경우에만 효력이 있다.", "c": null, "g": true, "p": []}, {"id": "confidential", "t": "비밀유지", "x": "당사자는 이 계약으로 알게 된 상대방의 정보를 상대방의 동의 없이 제3자에게 누설하지 않는다.", "c": null, "g": true, "p": []}, {"id": "notice", "t": "통지 방법", "x": "이 계약에 관한 통지는 계약서에 적힌 연락처로 문자메시지 또는 전자우편을 보내는 방법으로 할 수 있다.", "c": null, "g": true, "p": []}], "part": [{"id": "emp_secret", "t": "영업비밀 보호", "x": "근로자는 재직 중 및 퇴직 후 {비밀유지 기간}년간 업무상 알게 된 회사의 영업비밀을 누설하지 않는다.", "c": null, "g": false, "p": [{"l": "비밀유지 기간", "ty": "NUMBER", "o": [], "v": {"min": 1, "max": 5}}]}, {"id": "emp_meal", "t": "식대 지급", "x": "사업주는 매월 식대 {식대}원을 임금과 함께 지급한다.", "c": null, "g": false, "p": [{"l": "식대", "ty": "NUMBER", "o": [], "v": {}}]}, {"id": "emp_relocate", "t": "근무장소 변경", "x": "업무상 필요한 경우 사업주는 근로자와 협의하여 근무장소를 변경할 수 있다.", "c": null, "g": false, "p": []}, {"id": "part_overtime", "t": "초과근로", "x": "사업주는 근로자의 동의를 얻은 경우에만 소정근로시간을 초과하여 근로하게 할 수 있으며, 그 시간은 1주 12시간을 넘지 않는다.", "c": "기간제 및 단시간근로자 보호 등에 관한 법률 제6조.", "g": false, "p": []}, {"id": "court", "t": "관할 법원", "x": "이 계약에 관한 분쟁은 {관할법원}을 제1심 관할 법원으로 한다.", "c": null, "g": true, "p": [{"l": "관할법원", "ty": "TEXT", "o": [], "v": {}}]}, {"id": "amend_in_writing", "t": "변경은 서면 합의로만", "x": "이 계약의 변경은 양 당사자가 서면(전자문서를 포함한다)으로 합의한 경우에만 효력이 있다.", "c": null, "g": true, "p": []}, {"id": "confidential", "t": "비밀유지", "x": "당사자는 이 계약으로 알게 된 상대방의 정보를 상대방의 동의 없이 제3자에게 누설하지 않는다.", "c": null, "g": true, "p": []}, {"id": "notice", "t": "통지 방법", "x": "이 계약에 관한 통지는 계약서에 적힌 연락처로 문자메시지 또는 전자우편을 보내는 방법으로 할 수 있다.", "c": null, "g": true, "p": []}]};
+  var SAMPLE = { "관할법원": "서울중앙지방법원", "지연손해금률": "15", "분할 횟수": "10", "매월 상환일": "25", "이자 지급일": "25", "선급금": "990,000", "선급금 지급일": "2026-10-15",
+    "무상 수정 횟수": "2", "지체상금률": "0.1", "하자보수 기간": "30", "계약금": "185,000", "배송비 부담자": "매수인(을)", "고지한 하자": "하단 모서리 긁힘", "하자 통지 기간": "7",
+    "비밀유지 기간": "2", "식대": "200,000", "수습 기간": "3", "수습 임금 비율": "90" };
+  var CL = {}, CUSTOM = {};
   var S = { tpl: "loan", values: {}, signed: false, paid: false, tab: "edit", sheet: false, toast: "" };
   function tpl() { return TPL[S.tpl]; }
   function val(f) { return S.values[S.tpl + "|" + f[0]] != null ? S.values[S.tpl + "|" + f[0]] : f[3]; }
@@ -294,10 +322,44 @@ textarea.in { min-height: 86px; resize: none; }
     return '<div class="fld"><label for="' + id + '">' + esc(f[0]) + '<i>*</i><span>' + (TYPE_LABEL[f[1]] || "") + (f[4] ? " · " + f[4] : "") + '</span></label>' + input +
       '<div class="errm" data-err="' + esc(f[0]) + '"' + (bad ? '' : ' hidden') + '>' + (rule ? rule[1] : "") + '</div></div>';
   }
+  function clauseOn(id) { return (CL[S.tpl] || []).indexOf(id) >= 0; }
+  function pval(label) { var k = S.tpl + "|" + label; return S.values[k] != null ? S.values[k] : (SAMPLE[label] || ""); }
+  function clauseLines() {
+    var lines = (CLAUSES[S.tpl] || []).filter(function (c) { return clauseOn(c.id); }).map(function (c) { return "- " + c.x; });
+    return lines.concat((CUSTOM[S.tpl] || []).map(function (t) { return "- " + t.replace(/[{}<>]/g, ""); }));
+  }
+  function clauseCard() {
+    var list = CLAUSES[S.tpl] || [], on = (CL[S.tpl] || []).length + (CUSTOM[S.tpl] || []).length;
+    function item(c) {
+      var active = clauseOn(c.id);
+      return '<div class="cl-item"><div class="tx"><b>' + esc(c.t) + '</b><small>' + esc(c.x.replace(/\{[^}]+\}/g, "___")) + '</small>' + (c.c ? '<em class="cl-warn">' + esc(c.c) + '</em>' : '') +
+        (active ? c.p.map(function (p) {
+          var id = "cp-" + S.tpl + "-" + p.l.replace(/\s/g, "_"), v = pval(p.l), max = p.v && p.v.max, min = p.v && p.v.min;
+          var n = parseFloat(String(v).replace(/,/g, "")), bad = p.ty === "NUMBER" && v !== "" && ((max != null && n > max) || (min != null && n < min));
+          var inp = p.ty === "SELECT" ? '<select class="in" id="' + id + '" data-p="' + esc(p.l) + '">' + p.o.map(function (o) { return '<option' + (o === v ? ' selected' : '') + '>' + esc(o) + '</option>'; }).join("") + '</select>'
+            : '<input class="in' + (bad ? ' err' : '') + '" id="' + id + '" type="' + (p.ty === "DATE" ? "date" : "text") + '" value="' + esc(v) + '" data-p="' + esc(p.l) + '"' + (p.ty === "NUMBER" ? ' inputmode="decimal" data-min="' + (min != null ? min : "") + '" data-max="' + (max != null ? max : "") + '"' : '') + '>';
+          return '<div class="fld" style="padding:8px 0 0"><label for="' + id + '">' + esc(p.l) + '<i>*</i><span>' + (p.ty === "NUMBER" && max != null ? min + "~" + max : TYPE_LABEL[p.ty] || "") + '</span></label>' + inp +
+            '<div class="errm" data-perr="' + esc(p.l) + '"' + (bad ? '' : ' hidden') + '>' + (max != null ? max.toLocaleString() + " 이하로 입력해 주세요." : "") + (min != null ? (max != null ? " " : "") + min + " 이상이어야 해요." : "") + '</div></div>';
+        }).join("") : '') + '</div>' +
+        '<button class="sw' + (active ? ' on' : '') + '" role="switch" aria-checked="' + active + '" aria-label="' + esc(c.t) + '" data-clause="' + c.id + '"><span></span></button></div>';
+    }
+    var spec = list.filter(function (c) { return !c.g; }), com = list.filter(function (c) { return c.g; });
+    return '<div class="clbox"><button class="cl-head" data-clopen aria-expanded="' + !!S.clOpen + '"><span class="ico" style="background:#f1efff;width:40px;height:40px;font-size:20px">📝</span><span class="tx"><b>특약·옵션</b><small>' + (on ? on + "개 들어가 있어요" : "필요한 조건을 계약서에 더해요") + '</small></span><span class="cl-caret' + (S.clOpen ? " up" : "") + '">⌄</span></button>' +
+      (S.clOpen ? '<div class="cl-body"><p class="cl-note">켜면 계약서의 특약사항에 조항이 들어가요. 법에 어긋나는 특약은 효력이 없을 수 있어요.</p>' +
+        (spec.length ? '<div class="cl-sub">이 계약서에 자주 넣는 특약</div>' + spec.map(item).join("") : '') +
+        '<div class="cl-sub">모든 계약에 쓸 수 있는 특약</div>' + com.map(item).join("") +
+        '<div class="cl-sub">직접 쓴 특약</div>' + (CUSTOM[S.tpl] || []).map(function (t, i) { return '<div class="cl-custom"><span>' + esc(t) + '</span><button data-cldel="' + i + '" aria-label="삭제">삭제</button></div>'; }).join("") +
+        '<textarea class="in" id="cl-new-' + S.tpl + '" maxlength="300" rows="2" placeholder="예: 반려동물 관련 비용은 을이 부담한다." style="margin-top:8px;min-height:64px"></textarea>' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px"><small class="muted">최대 10개 · 300자</small><button class="btn sub sm" style="width:auto;padding:9px 16px" data-cladd>특약 추가</button></div></div>' : '') + '</div>';
+  }
+
   function paper(signA, signB) {
     var t = tpl(), map = {};
     t.fields.forEach(function (f) { var v = val(f); map[f[0]] = f[1] === "DATE" ? fmtDate(v) : v; });
-    var body = esc(t.body).replace(/\{([^}]+)\}/g, function (_, k) { return '<span class="v">' + esc(map[k] || "   ") + '</span>'; })
+    var src = t.body, extra = clauseLines();
+    if (extra.length) { var cut = src.lastIndexOf("\n\n"); src = src.slice(0, cut) + "\n\n특약사항\n" + extra.join("\n") + src.slice(cut); }
+    (CLAUSES[S.tpl] || []).forEach(function (c) { if (clauseOn(c.id)) c.p.forEach(function (p) { var v = pval(p.l); map[p.l] = p.ty === "DATE" ? fmtDate(v) : v; }); });
+    var body = esc(src).replace(/\{([^}]+)\}/g, function (_, k) { return '<span class="v">' + esc(map[k] || "   ") + '</span>'; })
       .replace("[A]", signA ? '<span class="sig">' + SIGSVG + '</span>' : '<span class="sig empty">' + t.a + ' 서명</span>')
       .replace("[B]", signB ? '<span class="sig">' + SIGSVG + '</span>' : '<span class="sig empty">' + t.b + ' 서명</span>');
     return '<div class="paperw"><div class="paper"><div class="no">계약번호 K-20261010-3F9A</div><h5>' + esc(t.title) + '</h5><p>' + body + '</p>' +
@@ -364,7 +426,7 @@ textarea.in { min-height: 86px; resize: none; }
           '<div class="cardg" style="margin-top:12px"><div class="fld"><label for="pdf-l">선택한 빈칸 이름</label><input class="in" id="pdf-l" value="보증금"></div><div class="two"><div class="fld"><label for="pdf-t">유형</label><select class="in" id="pdf-t"><option>숫자</option><option>글자</option></select></div><div class="fld"><label for="pdf-a">누가 입력</label><select class="in" id="pdf-a"><option>나</option><option>상대방</option></select></div></div></div></div>' +
           '<div class="ft"><button class="btn" data-go="edit">빈칸 저장</button></div>';
       } },
-    { id: "edit", group: "작성", name: "계약서 입력", info: ["고른 템플릿의 빈칸을 채웁니다. 다른 템플릿을 고르면 이 화면도 바뀝니다.", ["유형별 입력(숫자·날짜·전화번호·선택·시각 등)", "형식이 틀리면 칸 아래에 바로 안내 — 직접 입력해 보세요", "상대방 칸은 잠겨 있고 상대방이 채움"]],
+    { id: "edit", group: "작성", name: "계약서 입력", info: ["고른 템플릿의 빈칸을 채웁니다. 다른 템플릿을 고르면 이 화면도 바뀝니다.", ["유형별 입력(숫자·날짜·전화번호·선택·시각 등)", "형식이 틀리면 칸 아래에 바로 안내 — 직접 입력해 보세요", "아래 '특약·옵션'에서 계약서별 추천 특약을 켜거나 직접 쓴 특약을 추가 — 미리보기에 바로 반영", "법정 한도(지연손해금 20%, 수습 임금 90% 등)를 넘으면 저장되지 않음"]],
       html: function () {
         var t = tpl(), mine = t.fields.filter(function (f) { return f[2] === "A"; }), theirs = t.fields.filter(function (f) { return f[2] === "B"; });
         return head(esc(t.title)) + '<div class="bd"><div class="chips"><span class="badge blue">작성 중</span><span class="badge">v1</span><span class="badge">결제 없음</span></div>' +
@@ -372,7 +434,7 @@ textarea.in { min-height: 86px; resize: none; }
           '<div class="t2" style="margin-top:4px;font-size:15px">내가 입력 <small>' + mine.length + '칸</small></div>' + mine.map(function (f) { return field(f, true); }).join("") +
           '<div class="t2" style="font-size:15px">' + t.b + '이(가) 입력 <small>초대 후 채워져요</small></div>' + theirs.map(function (f) { return field(f, false); }).join("") +
           '<div class="fld"><label>' + t.a + ' 서명<i>*</i><span>서명</span></label><div class="in" style="border-style:dashed;color:var(--app-muted)">서명 단계에서 자동으로 채워져요</div></div>' +
-          '</div><div class="ft"><button class="btn" data-sheet>상대방 초대하기</button></div>';
+          clauseCard() + '</div><div class="ft"><button class="btn" data-sheet>상대방 초대하기</button></div>';
       } },
     { id: "preview", group: "작성", name: "미리보기", info: ["PDF로 만들어질 모양 그대로 보여줍니다.", ["입력한 값은 파란 밑줄로 표시", "계약번호·쪽번호가 모든 쪽에 들어감", "개발 환경에서는 '시험용 · 법적 효력 없음' 워터마크"]],
       html: function () {
@@ -570,6 +632,38 @@ textarea.in { min-height: 86px; resize: none; }
   }
 
   /* ---------- 이벤트 ---------- */
+  function keepScroll(fn) { var b = screenEl.querySelector(".bd"), y = b ? b.scrollTop : 0; fn(); var nb = screenEl.querySelector(".bd"); if (nb) nb.scrollTop = y; }
+  function rerender() { var v = screenEl.querySelector(".view"); if (v) { v.innerHTML = BYID[cur].html(); v.classList.remove("enter"); } renderDesc(); }
+  screenEl.addEventListener("click", function (e) {
+    var cl = e.target.closest("[data-clause],[data-clopen],[data-cladd],[data-cldel]");
+    if (cl) {
+      keepScroll(function () {
+        if (cl.hasAttribute("data-clopen")) S.clOpen = !S.clOpen;
+        else if (cl.hasAttribute("data-clause")) {
+          var id = cl.getAttribute("data-clause"), a = CL[S.tpl] = CL[S.tpl] || [], i = a.indexOf(id);
+          if (i >= 0) a.splice(i, 1); else a.push(id);
+        } else if (cl.hasAttribute("data-cladd")) {
+          var ta = screenEl.querySelector("#cl-new-" + S.tpl), t = ta ? ta.value.replace(/[{}<>\n]/g, " ").trim() : "";
+          var arr = CUSTOM[S.tpl] = CUSTOM[S.tpl] || [];
+          if (!t) return;
+          if (arr.length >= 10) { toast("직접 쓴 특약은 10개까지 넣을 수 있어요."); return; }
+          if (arr.indexOf(t) < 0) arr.push(t);
+        } else if (cl.hasAttribute("data-cldel")) (CUSTOM[S.tpl] || []).splice(+cl.getAttribute("data-cldel"), 1);
+        rerender();
+      });
+      return;
+    }
+  });
+  screenEl.addEventListener("input", function (e) {
+    var l = e.target.getAttribute && e.target.getAttribute("data-p");
+    if (!l) return;
+    S.values[S.tpl + "|" + l] = e.target.value;
+    var mn = e.target.getAttribute("data-min"), mx = e.target.getAttribute("data-max");
+    if (mn == null && mx == null) return;
+    var n = parseFloat(e.target.value.replace(/,/g, "")), bad = e.target.value !== "" && ((mx !== "" && n > +mx) || (mn !== "" && n < +mn) || isNaN(n));
+    e.target.classList.toggle("err", bad);
+    var m = screenEl.querySelector('[data-perr="' + CSS.escape(l) + '"]'); if (m) m.hidden = !bad;
+  });
   screenEl.addEventListener("click", function (e) {
     var el = e.target.closest("[data-go],[data-back],[data-sheet],[data-copy],[data-toast],[data-pay],[data-applied]");
     if (!el || el.disabled) return;

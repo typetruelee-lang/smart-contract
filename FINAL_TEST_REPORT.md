@@ -1,6 +1,6 @@
 # 최종 테스트 보고서
 
-- 실행: `make test` (`scripts/run_all_tests.sh`) — 2026-09-30 07:52 UTC, 개발 컨테이너
+- 실행: `make test` (`scripts/run_all_tests.sh`) — 2026-09-30 13:43 UTC, 개발 컨테이너
 - 근거 파일: `test-results/summary.json`
 - 실제로 실행한 결과만 적었습니다. 외부 계정이 필요한 운영 연동은 **테스트하지 않았고**, 해당 칸은 "Mock"으로 표시했습니다.
 
@@ -8,11 +8,11 @@
 
 | 구분 | PASS | FAIL |
 |---|---|---|
-| 백엔드 (pytest: 단위·통합·보안·EVM 스마트컨트랙트·증빙 문서) | 206 | 0 |
+| 백엔드 (pytest: 단위·통합·보안·EVM 스마트컨트랙트·증빙 문서) | 218 | 0 |
 | 프론트엔드 (vitest) | 20 | 0 |
-| E2E 기능 (Playwright, 모바일 iPhone 13 에뮬레이션) | 20 | 0 |
-| E2E 화면 캡처 | 1 (23장) | 0 |
-| **합계** | **247** | **0** |
+| E2E 기능 (Playwright, 모바일 iPhone 13 에뮬레이션) | 21 | 0 |
+| E2E 화면 캡처 | 1 (24장) | 0 |
+| **합계** | **260** | **0** |
 
 추가로 확인한 것:
 
@@ -30,6 +30,7 @@
 | Contract Creation (텍스트·붙여넣기·템플릿 6종) | PASS | `test_flow.py`, `test_contract_data_matrix.py`, E2E 시나리오 1·템플릿 |
 | 표준근로계약서 · 일용근로자 표준근로계약서 (고용노동부 서식 항목, 근로시간 HH:MM 검증, 템플릿 안내) | PASS | `test_contract_data_matrix.py`(정상/빈/잘못/긴/한글/특수/숫자/날짜), `test_time_field_pattern`, E2E 일용근로자 |
 | 단시간근로자 표준근로계약서 (요일별 근로·휴게시간, 1주 소정근로시간, 가산임금률 50% 미만 거부) | PASS | `test_parttime_day_schedule_patterns`, `test_parttime_template_requires_overtime_premium_of_50_percent`, 데이터 매트릭스, E2E 단시간근로자 |
+| 특약·옵션 (계약서별 추천 특약 켜기/끄기, 직접 쓴 특약, 법정 한도, 초대 후 변경 시 새 버전·서명 무효화, 작성자만 변경) | PASS | `test_clauses.py`(8), `test_clauses_api.py`(4), E2E 특약·옵션 |
 | 입력 형식 규칙 서버 허용목록 (임의 정규식·과도한 길이 제한 거부) | PASS | `test_client_validation_is_sanitized` |
 | PDF Upload (텍스트 PDF 추출 · 스캔 PDF OCR) | PASS | `test_pdf_upload.py`, E2E 시나리오 2·OCR |
 | Field Detection (자동 **추천** → 사용자 적용) | PASS | `test_units.py`(추천·적용·라벨·유형 추론), E2E |
@@ -90,7 +91,7 @@
 | 18 | 결제 실패 | PASS | 기록 요청 없음 |
 | 19 | Blockchain 실패 | PASS | "다시 시도 중", 결제는 완료 유지 |
 | 20 | 재시도 | PASS | 수동 재시도 + 워커 → 기록 완료 |
-| 21 | 모바일 화면 | PASS | 5개 화면 가로 스크롤 없음, 버튼 48px 이상 + 화면 검수 23장 |
+| 21 | 모바일 화면 | PASS | 5개 화면 가로 스크롤 없음, 버튼 48px 이상 + 화면 검수 24장 |
 | 22 | 오류 화면 | PASS | 없는 화면·없는 계약·타인 계약 |
 | 23 | 뒤로가기 | PASS | 앱 뒤로가기 + 브라우저 뒤로가기 |
 | 24 | 새로고침 | PASS | 새로고침 후 상태 유지 |
@@ -98,7 +99,7 @@
 
 ## E2E
 
-PASS — 20/20 (로컬) · 15/15 + 1 SKIP (Docker 스택)
+PASS — 21/21 (로컬) · 15/15 + 1 SKIP (Docker 스택)
 
 ## Security
 
@@ -114,7 +115,7 @@ PASS — 타입 검사 · 웹 빌드 · 앱인토스 `.ait` 빌드 · 스마트�
 
 ## 화면 검수
 
-PASS — 23장 OK (`FINAL_REVIEW/VISUAL_REVIEW.md`)
+PASS — 24장 OK (`FINAL_REVIEW/VISUAL_REVIEW.md`)
 
 ## 테스트 중 발견해서 고친 문제 (재발 방지 테스트 포함)
 

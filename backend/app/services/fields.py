@@ -364,7 +364,8 @@ def normalize_value(f: FieldSpec, value: Any) -> Any:
         if "min" in v and num < v["min"]:
             raise err(f"{v['min']} 이상이어야 해요.")
         if "max" in v and num > v["max"]:
-            raise err("너무 큰 숫자예요.")
+            mx = v["max"]
+            raise err(f"{int(mx) if float(mx).is_integer() else mx:,} 이하로 입력해 주세요.")
         return s
     if t == "DATE":
         try:

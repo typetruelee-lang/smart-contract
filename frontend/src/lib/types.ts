@@ -103,7 +103,7 @@ export interface ContractView {
   retention_note: string | null;
   allow_extended_retention: boolean;
   keep_encrypted_original: boolean;
-  payload: { title: string; body_text: string; fields: Field[]; source: string; pages?: { width: number; height: number }[] } | null;
+  payload: { title: string; body_text: string; fields: Field[]; source: string; pages?: { width: number; height: number }[]; template_id?: string; clauses?: string[]; custom_clauses?: string[] } | null;
   parties: Party[];
   versions: VersionInfo[];
   payment: { status: string; id: string | null; amount: number | null; failure_reason: string | null };

@@ -151,4 +151,18 @@ test("화면 캡처", async ({ browser }) => {
   await shot(V.page, "13-error.png");
   await A.page.goto("/contracts");
   await shot(A.page, "14-my-contracts.png");
+
+  // 특약·옵션 (용역계약: 선급금·저작권 귀속 켬 + 직접 쓴 특약)
+  await A.page.goto("/create/template?t=service");
+  await A.page.waitForURL(/\/contracts\/[a-f0-9]{32}$/);
+  await A.page.getByTestId("clauses-toggle").click();
+  await A.page.getByTestId("clause-svc_copyright").click();
+  await expect(A.page.getByTestId("clause-svc_copyright")).toHaveAttribute("aria-checked", "true");
+  await A.page.getByTestId("clause-svc_advance").click();
+  await expect(A.page.getByTestId("clause-svc_advance")).toHaveAttribute("aria-checked", "true");
+  await A.page.getByTestId("custom-clause-input").fill("작업 중간 결과는 매주 금요일에 공유한다.");
+  await A.page.getByTestId("add-custom-clause").click();
+  await expect(A.page.getByTestId("custom-clauses")).toBeVisible();
+  await A.page.getByTestId("clauses").evaluate((el) => window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - 64));
+  await shot(A.page, "04b-clauses.png");
 });

@@ -34,7 +34,7 @@ export default function TemplatePick() {
     setBusy(true);
     try {
       const t = await api.get<{ title: string; body: string; contract_type: string; fields: Field[] }>(`/api/templates/${id}`);
-      const r = await api.post<{ id: string }>("/api/contracts", { title: t.title, source: "TEMPLATE", contract_type: t.contract_type, body_text: t.body, fields: t.fields });
+      const r = await api.post<{ id: string }>("/api/contracts", { title: t.title, source: "TEMPLATE", contract_type: t.contract_type, body_text: t.body, fields: t.fields, template_id: id });
       nav(`/contracts/${r.id}`, { replace: true });
     } catch (e) {
       toast(e instanceof ApiError ? e.message : "템플릿을 불러오지 못했어요.", "error");

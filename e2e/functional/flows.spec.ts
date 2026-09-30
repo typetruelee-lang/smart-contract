@@ -224,6 +224,34 @@ test("단시간근로자 표준근로계약서: 요일별 근로시간 형식 + 
   await expect(A.page.getByTestId("contract-preview")).toContainText("09:00~13:00");
 });
 
+test("특약·옵션: 추천 특약 켜기 + 법정 한도 검증 + 직접 쓴 특약 추가·삭제", async ({ browser }) => {
+  const A = await newParty(browser);
+  await login(A.page, "hong");
+  await A.page.goto("/");
+  await A.page.getByTestId("quick-loan").click();
+  await A.page.waitForURL(/\/contracts\/[a-f0-9]{32}$/);
+  await A.page.getByTestId("clauses-toggle").click();
+  await A.page.getByTestId("clause-loan_late_interest").click();
+  await expect(A.page.getByTestId("clause-loan_late_interest")).toHaveAttribute("aria-checked", "true");
+  await fillFields(A.page, { 지연손해금률: "25" });
+  await A.page.getByTestId("save-values").click();
+  await expect(A.page.getByText("20 이하로 입력해 주세요").first()).toBeVisible();
+  await fillFields(A.page, { 지연손해금률: "15" });
+  await A.page.getByTestId("save-values").click();
+  await expect(A.page.getByRole("alert").first()).toContainText("저장했어요");
+  await expect(A.page.getByTestId("clauses-toggle")).toHaveAttribute("aria-expanded", "true");
+  await A.page.getByTestId("custom-clause-input").fill("반려동물 관련 비용은 을이 부담한다.");
+  await A.page.getByTestId("add-custom-clause").click();
+  await expect(A.page.getByTestId("custom-clauses")).toContainText("반려동물");
+  await A.page.getByTestId("tab-preview").click();
+  await expect(A.page.getByTestId("contract-preview")).toContainText("지연손해금");
+  await expect(A.page.getByTestId("contract-preview")).toContainText("반려동물 관련 비용은 을이 부담한다.");
+  await A.page.getByTestId("tab-edit").click();
+  await A.page.getByTestId("clauses-toggle").click();
+  await A.page.getByRole("button", { name: /반려동물.*삭제/ }).click();
+  await expect(A.page.getByTestId("custom-clauses")).toHaveCount(0);
+});
+
 test("내용 변경 시 새 버전 + 기존 서명 무효화 안내", async ({ browser }) => {
   const A = await newParty(browser);
   const B = await newParty(browser);

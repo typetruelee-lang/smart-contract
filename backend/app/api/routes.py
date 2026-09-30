@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, Response, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Request, Response, UploadFile
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
@@ -161,13 +161,33 @@ class CreateIn(BaseModel):
     source: str = Field(default="TEXT", pattern="^(TEXT|TEMPLATE)$")
     body_text: str = Field(default="", max_length=svc.MAX_BODY)
     fields: list[FieldSpec] = Field(default_factory=list, max_length=200)
+    template_id: str | None = Field(default=None, max_length=40)
 
 
 @router.post("/contracts")
 def create_contract(body: CreateIn, db: Session = Depends(get_db), user: User = Depends(current_user)):
     c = svc.create_contract(db, user, title=body.title, contract_type=body.contract_type, source=body.source,
-                            body_text=body.body_text, fields=body.fields)
+                            body_text=body.body_text, fields=body.fields, template_id=body.template_id)
     return {"id": c.id}
+
+
+@router.get("/clauses")
+def list_clauses(contract_type: str = Query("general", max_length=32), template_id: str | None = Query(None, max_length=40)):
+    from app.services import clauses
+    return {"clauses": clauses.available(contract_type, template_id), "excluded": clauses.EXCLUDED,
+            "max_custom": clauses.MAX_CUSTOM, "max_custom_len": clauses.MAX_CUSTOM_LEN}
+
+
+class ClausesIn(BaseModel):
+    library: list[str] = Field(default_factory=list, max_length=40)
+    custom: list[str] = Field(default_factory=list, max_length=20)
+
+
+@router.put("/contracts/{cid}/clauses")
+def set_clauses(cid: str, body: ClausesIn, db: Session = Depends(get_db), user: User = Depends(current_user)):
+    c, p = svc.get_contract_for(db, cid, user)
+    v = svc.set_clauses(db, c, p, body.library, [t[:1000] for t in body.custom])
+    return {"version_no": v.version_no, "content_hash": v.content_hash}
 
 
 @router.post("/contracts/upload")
