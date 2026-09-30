@@ -13,6 +13,13 @@ cd "$ROOT"
 status() { echo "$1=$2" >> "$RAW/status.env"; }
 : > "$RAW/status.env"
 
+# 로컬 PostgreSQL · Redis 가 꺼져 있으면 켠다 (개발 컨테이너 재시작 대비, 실패해도 계속)
+if command -v pg_isready >/dev/null && ! pg_isready -q -h localhost 2>/dev/null; then
+  (service postgresql start || true) >/dev/null 2>&1
+  for i in $(seq 1 20); do pg_isready -q -h localhost && break; sleep 1; done
+fi
+if command -v redis-cli >/dev/null && ! redis-cli ping >/dev/null 2>&1; then (service redis-server start || true) >/dev/null 2>&1; fi
+
 echo "▶ 1/5 백엔드 테스트"
 (cd backend && .venv/bin/pytest -q -p no:cacheprovider --junitxml="$RAW/backend.xml" tests) ; status backend_exit $?
 

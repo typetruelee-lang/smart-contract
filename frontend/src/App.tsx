@@ -17,6 +17,8 @@ const MyContracts = lazy(() => import("./pages/MyContracts"));
 const Verify = lazy(() => import("./pages/Verify"));
 const Admin = lazy(() => import("./pages/Admin"));
 const Evidence = lazy(() => import("./pages/Evidence"));
+const Terms = lazy(() => import("./pages/Legal").then((m) => ({ default: m.Terms })));
+const Privacy = lazy(() => import("./pages/Legal").then((m) => ({ default: m.Privacy })));
 
 class Boundary extends Component<{ children: ReactNode }, { err: Error | null }> {
   state = { err: null as Error | null };
@@ -59,6 +61,8 @@ export default function App() {
               <Route path="/verify" element={<Verify />} />
               <Route path="/verify/:vid" element={<Verify />} />
               <Route path="/admin" element={<Admin />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/privacy" element={<Privacy />} />
               <Route
                 path="*"
                 element={

@@ -132,7 +132,7 @@ def sign(client: ApiClient, cid: str) -> dict:
     view = client.get(f"/api/contracts/{cid}").json()
     s = client.post(f"/api/contracts/{cid}/identity/start").json()
     assert client.post(f"/api/contracts/{cid}/identity/complete", {"session_id": s["session_id"]}).status_code == 200
-    r = client.post(f"/api/contracts/{cid}/review", {"version_no": view["current_version_no"], "content_checked": True, "own_will": True, "e_signature_consent": True})
+    r = client.post(f"/api/contracts/{cid}/review", {"version_no": view["current_version_no"], "content_checked": True, "own_will": True, "e_signature_consent": True, "retention_acknowledged": True})
     assert r.status_code == 200, r.text
     st = client.post(f"/api/contracts/{cid}/sign/start").json()
     r = client.post(f"/api/contracts/{cid}/sign/complete", {"request_id": st["request_id"], "version_no": st["version_no"], "signature_image": signature_png()})

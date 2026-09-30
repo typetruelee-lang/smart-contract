@@ -27,6 +27,7 @@ from app.core.config import get_settings
 from app.models import (
     AnchorJob,
     AuditEvent,
+    CertificateIssuance,
     Contract,
     ContractParty,
     DocumentBlob,
@@ -73,6 +74,17 @@ def new_verification_id() -> str:
     # 추측 불가능한 난수 (Crockford base32 계열, 혼동 문자 제외) — 약 60bit
     alpha = "23456789ABCDEFGHJKMNPQRSTVWXYZ"
     return f"V-{_rand(4, alpha)}-{_rand(4, alpha)}-{_rand(4, alpha)}"
+
+
+def issuer_info() -> dict:
+    s = get_settings()
+    return {"service": s.APP_NAME, "company": s.COMPANY_NAME, "biz_no": s.COMPANY_BIZ_NO,
+            "representative": s.COMPANY_REPRESENTATIVE, "address": s.COMPANY_ADDRESS, "contact": s.COMPANY_CONTACT}
+
+
+def is_test_mode(c: Contract) -> bool:
+    """운영 본인확인·전자서명(토스인증)을 거치지 않은 계약은 '시험용 · 법적 효력 없음' 으로 표시한다."""
+    return not all(p.signature_provider == "production" and p.identity_provider == "production" for p in c.parties)
 
 
 # ---------------- 페이로드(암호화 원문) ----------------
@@ -536,9 +548,9 @@ def identity_complete(db: Session, c: Contract, party: ContractParty, session_id
 
 def review(db: Session, c: Contract, party: ContractParty, version_no: int, confirmations: dict) -> None:
     _require_signable(c)
-    need = ("content_checked", "own_will", "e_signature_consent")
+    need = ("content_checked", "own_will", "e_signature_consent", "retention_acknowledged")
     if not all(confirmations.get(k) is True for k in need):
-        raise ContractError(422, "CONFIRM_REQUIRED", "세 가지 확인 항목에 모두 체크해 주세요.")
+        raise ContractError(422, "CONFIRM_REQUIRED", "확인 항목에 모두 체크해 주세요.")
     if version_no != c.current_version_no:
         raise ContractError(409, "VERSION_CHANGED", "그 사이 계약 내용이 바뀌었어요. 바뀐 내용을 다시 확인해 주세요.", {"current_version_no": c.current_version_no})
     v = current_version(db, c)
@@ -547,7 +559,8 @@ def review(db: Session, c: Contract, party: ContractParty, version_no: int, conf
         raise ContractError(422, "MISSING_FIELDS", f"아직 비어 있는 필수 칸이 있어요: {', '.join(f.label for f in miss[:3])}",
                             {"field_ids": [f.field_id for f in miss]})
     party.reviewed_version_no = v.version_no
-    evidence.record(db, c.id, "CONTRACT_REVIEWED", party.user_id, v.version_no, v.content_hash, {"role": party.role})
+    evidence.record(db, c.id, "CONTRACT_REVIEWED", party.user_id, v.version_no, v.content_hash,
+                    {"role": party.role, "confirmations": list(need), "consent_version": get_settings().CONSENT_VERSION})
     db.commit()
 
 
@@ -669,6 +682,7 @@ def _finalize(db: Session, c: Contract, v: DocumentVersion, payload: dict) -> No
         contract_no=c.contract_no, title=payload["title"], source=c.source, body_text=payload.get("body_text"),
         fields=fields_of(payload), parties=_party_signs(c, payload, images), version_no=v.version_no,
         content_hash=v.content_hash, completed_at=c.completed_at, source_pdf=source_pdf, sig_images=images,
+        test_mode=is_test_mode(c), issuer=issuer_info(),
     )
     blob = _store_blob(db, c.id, "CONTRACT_PDF", pdf, ref=f"v{v.version_no}")
     evidence.record(db, c.id, "PDF_GENERATED", None, v.version_no, blob.sha256, {"kind": "CONTRACT_PDF", "size": blob.size})
@@ -702,31 +716,55 @@ def preview_pdf(db: Session, c: Contract) -> bytes:
         contract_no=c.contract_no + " (미리보기)", title=payload["title"], source=c.source, body_text=payload.get("body_text"),
         fields=fields_of(payload), parties=_party_signs(c, payload, images), version_no=v.version_no,
         content_hash=v.content_hash, completed_at=_now(), source_pdf=source_pdf, sig_images=images,
+        test_mode=is_test_mode(c), issuer=issuer_info(),
     )
 
 
-def certificate_context(db: Session, c: Contract) -> dict:
+def new_issue_no() -> str:
+    return f"C-{_now():%Y%m%d}-{_rand(8)}"
+
+
+def certificate_context(db: Session, c: Contract, issue_no: str) -> dict:
     job = latest_anchor(db, c)
     av = anchor_view(job)
+    final = db.scalar(select(DocumentVersion).where(DocumentVersion.contract_id == c.id, DocumentVersion.version_no == c.final_version_no))
+    version_count = len(db.scalars(select(DocumentVersion.version_no).where(DocumentVersion.contract_id == c.id)).all())
+    blob = db.scalar(select(DocumentBlob).where(DocumentBlob.contract_id == c.id, DocumentBlob.kind == "CONTRACT_PDF"))
+    roles = {p.user_id: p.role for p in c.parties}
+    evs = evidence.list_events(db, c.id)
+    events = [{"seq": e.seq, "timestamp": e.timestamp, "label": evidence.EVENT_LABELS.get(e.event_type, e.event_type),
+               "role": ("당사자 " + roles[e.actor_id]) if e.actor_id in roles else (("당사자 " + e.event_metadata["role"]) if e.event_metadata.get("role") else None),
+               "version": e.document_version, "hash": e.document_hash}
+              for e in evs if e.event_type != "CERTIFICATE_GENERATED"]
     return {
+        "issue_no": issue_no, "issuer": issuer_info(), "test_mode": is_test_mode(c),
         "contract_no": c.contract_no, "title": c.title, "completed_at": c.completed_at, "version_no": c.final_version_no,
+        "version_count": version_count,
         "parties": [{"role_label": ROLE_LABEL[p.role], "name_masked": p.display_name_masked or "-", "identity_status": p.identity_status,
-                     "signed_at": p.signed_at} for p in c.parties],
-        "document_hash": c.document_hash, "verification_id": c.verification_id,
-        "verify_url": f"{get_settings().PUBLIC_BASE_URL}/verify/{c.verification_id}",
+                     "identity_verified_at": p.identity_verified_at, "signed_at": p.signed_at, "provider": p.signature_provider} for p in c.parties],
+        "document_hash": c.document_hash, "content_hash": final.content_hash if final else "", "document_size": blob.size if blob else 0,
+        "verification_id": c.verification_id, "verify_url": f"{get_settings().PUBLIC_BASE_URL}/verify/{c.verification_id}",
         "anchor": {**av, "confirmed_at": job.confirmed_at if job else None}, "issued_at": _now(),
+        "events": events, "chain_valid": evidence.verify_chain(db, c.id), "chain_head": evs[-1].event_hash if evs else "",
         "short_hash": short_hash(c.document_hash),
     }
 
 
 def certificate_pdf(db: Session, c: Contract, actor_id: str | None) -> tuple[bytes, str]:
+    """전자계약 체결 확인서 — 발급할 때마다 발급번호를 부여하고 파일의 SHA-256 을 발급 대장에 남긴다."""
     if c.status != "COMPLETED":
         raise ContractError(409, "NOT_COMPLETED", "계약이 완료된 뒤 확인서를 받을 수 있어요.")
-    pdf = pdf_engine.render_certificate_pdf(certificate_context(db, c))
+    issue_no = new_issue_no()
+    ctx = certificate_context(db, c, issue_no)
+    pdf = pdf_engine.render_certificate_pdf(ctx)
+    digest = sha256_bytes(pdf)
+    anchor_status = ctx["anchor"]["status"]
+    db.add(CertificateIssuance(issue_no=issue_no, contract_id=c.id, sha256=digest, issued_by=actor_id,
+                               anchor_status=anchor_status, test_mode=ctx["test_mode"]))
     evidence.record(db, c.id, "CERTIFICATE_GENERATED", actor_id, c.final_version_no, c.document_hash,
-                    {"kind": "CERTIFICATE_PDF", "sha256": sha256_bytes(pdf), "status": (latest_anchor(db, c) or AnchorJob(status="NOT_REQUESTED")).status})
+                    {"kind": "CERTIFICATE_PDF", "sha256": digest, "status": anchor_status, "issue_no": issue_no})
     db.commit()
-    return pdf, f"{c.contract_no}-certificate.pdf"
+    return pdf, f"{c.contract_no}-certificate-{issue_no}.pdf"
 
 
 def source_pdf_bytes(db: Session, c: Contract) -> bytes:

@@ -117,12 +117,25 @@ class _PdfRenderer:
 _renderer = _PdfRenderer()
 
 
-def html_to_pdf(html: str, *, width: str | None = None, height: str | None = None) -> bytes:
+def footer_template(left: str) -> str:
+    """모든 쪽 하단: 문서 번호 · 쪽수 (n / m). Chromium 머리글/바닥글 템플릿 — 값은 이스케이프."""
+    from markupsafe import escape
+
+    return (
+        '<div style="width:100%;font-family:\'Noto Sans CJK KR\',sans-serif;font-size:7.5px;color:#6b7684;'
+        'padding:0 16mm;display:flex;justify-content:space-between;">'
+        f'<span>{escape(left)}</span><span><span class="pageNumber"></span> / <span class="totalPages"></span> 쪽</span></div>'
+    )
+
+
+def html_to_pdf(html: str, *, width: str | None = None, height: str | None = None, footer: str | None = None) -> bytes:
     opts: dict = {"print_background": True, "prefer_css_page_size": True}
     if width and height:
         opts.update(width=width, height=height)
     else:
         opts["format"] = "A4"
+    if footer:
+        opts.update(display_header_footer=True, header_template="<div></div>", footer_template=footer_template(footer))
     return _renderer.render(html, opts)
 
 
@@ -292,33 +305,38 @@ def _render_body(body_text: str, fields: list[FieldSpec], sig_images: dict[str, 
 def render_contract_pdf(
     *, contract_no: str, title: str, source: str, body_text: str | None, fields: list[FieldSpec],
     parties: list[PartySign], version_no: int, content_hash: str, completed_at: datetime,
-    source_pdf: bytes | None, sig_images: dict[str, str],
+    source_pdf: bytes | None, sig_images: dict[str, str], test_mode: bool = False, issuer: dict | None = None,
 ) -> bytes:
-    """완성 계약서 PDF. 계약서 자신의 Hash 는 넣을 수 없으므로 '내용 지문(content_hash)'과 서명정보만 포함."""
+    """완성 계약서 PDF. 계약서 자신의 Hash 는 넣을 수 없으므로 '내용 지문(content_hash)'과 서명정보만 포함.
+
+    test_mode=True (모의 본인확인/서명) 이면 모든 쪽에 '시험용 · 법적 효력 없음' 워터마크를 넣는다.
+    """
     sign_html = _jinja.get_template("signature_page.html").render(
         contract_no=contract_no, title=title, parties=parties, version_no=version_no,
-        content_hash=content_hash, completed_at=completed_at,
+        content_hash=content_hash, completed_at=completed_at, test_mode=test_mode, issuer=issuer or {},
     )
+    footer = f"계약번호 {contract_no} · 전자서명 문서" + (" · 시험용(법적 효력 없음)" if test_mode else "")
     if source == "PDF" and source_pdf:
-        return _flatten_pdf(source_pdf, fields, sig_images, sign_html)
+        return _flatten_pdf(source_pdf, fields, sig_images, sign_html, test_mode=test_mode, footer=footer)
     body = body_text or ""
     first, _, rest = body.lstrip("\n").partition("\n")
     if first.strip() == title.strip():
         body = rest.lstrip("\n")  # 본문 첫 줄이 제목과 같으면 중복 표시하지 않음
     html = _jinja.get_template("contract.html").render(
         contract_no=contract_no, title=title, parts=_render_body(body, fields, sig_images),
-        sign_html=sign_html,
+        sign_html=sign_html, test_mode=test_mode,
     )
-    return html_to_pdf(html)
+    return html_to_pdf(html, footer=footer)
 
 
-def _flatten_pdf(source_pdf: bytes, fields: list[FieldSpec], sig_images: dict[str, str], sign_html: str) -> bytes:
+def _flatten_pdf(source_pdf: bytes, fields: list[FieldSpec], sig_images: dict[str, str], sign_html: str,
+                 test_mode: bool = False, footer: str | None = None) -> bytes:
     reader = PdfReader(io.BytesIO(source_pdf), strict=False)
     writer = PdfWriter()
     for idx, page in enumerate(reader.pages, start=1):
         w, h = float(page.mediabox.width), float(page.mediabox.height)
         page_fields = [f for f in fields if f.page == idx and f.position is not None]
-        if page_fields:
+        if page_fields or test_mode:
             items = []
             for f in page_fields:
                 p = f.position
@@ -331,14 +349,14 @@ def _flatten_pdf(source_pdf: bytes, fields: list[FieldSpec], sig_images: dict[st
                     item["text"] = display_value(f)
                     item["size"] = max(min(p.h * h * 0.62, 14), 7)
                 items.append(item)
-            overlay_html = _jinja.get_template("overlay.html").render(w=w, h=h, items=items)
+            overlay_html = _jinja.get_template("overlay.html").render(w=w, h=h, items=items, test_mode=test_mode)
             overlay = PdfReader(io.BytesIO(html_to_pdf(overlay_html, width=f"{w / 72:.5f}in", height=f"{h / 72:.5f}in")))
             page.merge_page(overlay.pages[0])
         writer.add_page(page)
-    sign_pdf = PdfReader(io.BytesIO(html_to_pdf(_jinja.get_template("standalone.html").render(body=sign_html))))
+    sign_pdf = PdfReader(io.BytesIO(html_to_pdf(_jinja.get_template("standalone.html").render(body=sign_html, test_mode=test_mode), footer=footer)))
     for p in sign_pdf.pages:
         writer.add_page(p)
-    writer.add_metadata({"/Producer": "KyeyakHaja PDF Engine", "/Title": "계약서"})
+    writer.add_metadata({"/Producer": "KyeyakHaja PDF Engine", "/Title": "전자계약서"})
     buf = io.BytesIO()
     writer.write(buf)
     return buf.getvalue()
@@ -347,4 +365,5 @@ def _flatten_pdf(source_pdf: bytes, fields: list[FieldSpec], sig_images: dict[st
 def render_certificate_pdf(ctx: dict) -> bytes:
     ctx = dict(ctx)
     ctx["qr"] = qr_data_uri(ctx["verify_url"])
-    return html_to_pdf(_jinja.get_template("certificate.html").render(**ctx))
+    footer = f"발급번호 {ctx['issue_no']} · 계약번호 {ctx['contract_no']}" + (" · 시험용(법적 효력 없음)" if ctx.get("test_mode") else "")
+    return html_to_pdf(_jinja.get_template("certificate.html").render(**ctx), footer=footer)

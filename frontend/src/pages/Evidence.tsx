@@ -37,7 +37,7 @@ export default function Evidence() {
       <Card className="mb-4 p-4">
         <div className="flex items-center justify-between">
           <span className="font-semibold">기록 무결성</span>
-          {data.chain_valid ? <Badge tone="green">위·변조 없음</Badge> : <Badge tone="red">변조 의심</Badge>}
+          {data.chain_valid ? <Badge tone="green">기록 사슬 정상</Badge> : <Badge tone="red">기록 불일치</Badge>}
         </div>
         <p className="mt-1 text-[13px] text-grey-600">각 기록은 이전 기록의 지문을 포함해 사슬처럼 연결되어 있어요.</p>
       </Card>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Button, Page, useToast } from "../components/ui";
 import { ApiError, api } from "../lib/api";
 import { useAuth } from "../lib/auth";
@@ -53,9 +53,12 @@ export default function Login() {
           <br />
           계약을 시작하세요
         </h1>
-        <p className="text-grey-600">본인 명의의 토스 계정으로 안전하게 로그인해요.</p>
+        <p className="text-grey-600">본인 명의의 토스 계정으로 로그인해요.</p>
       </div>
       <div className="mt-auto flex flex-col gap-3 pt-10">
+        <p data-testid="login-consent" className="text-center text-[13px] leading-5 text-grey-500">
+          로그인하면 <Link className="underline" to="/terms">이용약관</Link>과 <Link className="underline" to="/privacy">개인정보처리방침</Link>에 동의하는 것으로 봐요.
+        </p>
         {bridge.isInToss || !mockLogin ? (
           <Button onClick={() => go()} loading={busy === "toss"}>
             토스로 로그인

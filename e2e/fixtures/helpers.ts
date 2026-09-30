@@ -94,7 +94,7 @@ export async function signFlow(page: Page) {
   await page.getByTestId("go-sign").click();
   await page.getByTestId("identity-btn").click();
   await page.getByText("계약 최종 확인").waitFor();
-  for (const [id, text] of [["chk-content", "계약 내용을 확인했습니다."], ["chk-will", "본인의 의사로 계약합니다."], ["chk-esign", "전자서명으로 계약을 체결합니다."]]) {
+  for (const [id, text] of [["chk-content", "계약 내용을 확인했습니다."], ["chk-will", "본인의 의사로 계약합니다."], ["chk-esign", "전자서명으로 계약을 체결합니다."], ["chk-retention", "완성된 계약서 파일은 제가 직접 보관합니다. 서비스는 일정 기간이 지나면 원문을 삭제한다는 것을 알고 있습니다."]]) {
     await page.getByText(text, { exact: true }).click();
     await expect(page.getByTestId(id)).toBeChecked();
   }

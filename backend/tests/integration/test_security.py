@@ -164,7 +164,7 @@ def test_signature_image_validation(client_factory):
     b.post(f"/api/invites/{token}/accept")
     s = b.post(f"/api/contracts/{cid}/identity/start").json()
     b.post(f"/api/contracts/{cid}/identity/complete", {"session_id": s["session_id"]})
-    b.post(f"/api/contracts/{cid}/review", {"version_no": 1, "content_checked": True, "own_will": True, "e_signature_consent": True})
+    b.post(f"/api/contracts/{cid}/review", {"version_no": 1, "content_checked": True, "own_will": True, "e_signature_consent": True, "retention_acknowledged": True})
     st = b.post(f"/api/contracts/{cid}/sign/start").json()
     for bad in ["data:image/svg+xml;base64,PHN2Zz4=", "data:image/png;base64,AAAA", "javascript:alert(1)"]:
         r = b.post(f"/api/contracts/{cid}/sign/complete", {"request_id": st["request_id"], "version_no": 1, "signature_image": bad})

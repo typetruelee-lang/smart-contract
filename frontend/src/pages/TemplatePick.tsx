@@ -55,7 +55,9 @@ export default function TemplatePick() {
           </Card>
         ))}
       </div>
-      <p className="mt-6 text-[13px] leading-5 text-grey-500">템플릿은 일반적인 예시예요. 중요한 계약은 전문가의 검토를 받아 주세요.</p>
+      <p data-testid="template-notice" className="mt-6 text-[13px] leading-5 text-grey-500">
+        템플릿은 일반적인 예시일 뿐 법률 자문이 아니에요. 내 상황에 맞는지, 법에 어긋나는 내용이 없는지는 직접 확인해야 하며, 중요한 계약은 변호사 등 전문가의 검토를 받아 주세요.
+      </p>
     </Page>
   );
 }

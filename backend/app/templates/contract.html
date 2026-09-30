@@ -1,5 +1,6 @@
 <!doctype html><html lang="ko"><head><meta charset="utf-8"><title>{{ title }}</title>
 <style>{% include "_base.css" %}</style></head><body>
+{% if test_mode %}<div class="watermark">시험용 · 법적 효력 없음</div>{% endif %}
 <div class="meta">계약번호 {{ contract_no }}</div>
 <h1>{{ title }}</h1>
 <div class="body">{% for p in parts %}{% if p.kind == "text" %}{{ p.text }}{% elif p.kind == "value" %}<span class="value{% if p.long %} long{% endif %}">{{ p.text }}</span>{% elif p.kind == "empty" %}<span class="empty">{{ p.text }}</span>{% elif p.kind == "signature" %}{% if p.src %}<img class="sig" src="{{ p.src }}" alt="서명">{% else %}<span class="sigbox">{{ p.text }}</span>{% endif %}{% endif %}{% endfor %}</div>

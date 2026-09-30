@@ -76,7 +76,7 @@ def test_scenario3_blockchain_mock_tx_and_certificate(client_factory):
     with pdfplumber.open(io.BytesIO(cert.content)) as doc:
         txt = "\n".join((p.extract_text() or "") for p in doc.pages)
     view = a.get(f"/api/contracts/{cid}").json()
-    assert "전자계약 확인서" in txt
+    assert "전자계약 체결 확인서" in txt
     assert view["verification_id"] in txt
     assert view["document_hash"][:20] in txt.replace("\n", "")
     assert "기록 완료" in txt
@@ -156,12 +156,12 @@ def test_stale_review_rejected(client_factory):
                                                         by["상환일"]["field_id"]: "2027-01-01", by["이자율"]["field_id"]: "1"}})
     token = a.post(f"/api/contracts/{cid}/invite").json()["invite_token"]
     b.post(f"/api/invites/{token}/accept")
-    r = b.post(f"/api/contracts/{cid}/review", {"version_no": 99, "content_checked": True, "own_will": True, "e_signature_consent": True})
+    r = b.post(f"/api/contracts/{cid}/review", {"version_no": 99, "content_checked": True, "own_will": True, "e_signature_consent": True, "retention_acknowledged": True})
     assert r.status_code == 409 and r.json()["detail"]["code"] == "VERSION_CHANGED"
-    r = b.post(f"/api/contracts/{cid}/review", {"version_no": 1, "content_checked": True, "own_will": False, "e_signature_consent": True})
+    r = b.post(f"/api/contracts/{cid}/review", {"version_no": 1, "content_checked": True, "own_will": False, "e_signature_consent": True, "retention_acknowledged": True})
     assert r.status_code == 422
     # 본인확인 없이 서명 시작 불가
-    b.post(f"/api/contracts/{cid}/review", {"version_no": 1, "content_checked": True, "own_will": True, "e_signature_consent": True})
+    b.post(f"/api/contracts/{cid}/review", {"version_no": 1, "content_checked": True, "own_will": True, "e_signature_consent": True, "retention_acknowledged": True})
     r = b.post(f"/api/contracts/{cid}/sign/start")
     assert r.status_code == 409 and r.json()["detail"]["code"] == "IDENTITY_REQUIRED"
 

@@ -8,7 +8,7 @@ from __future__ import annotations
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models import Contract
+from app.models import CertificateIssuance, Contract
 from app.providers import get_blockchain
 from app.services.contracts import latest_anchor
 from app.services.hashing import normalize_hash, short_hash
@@ -49,6 +49,18 @@ def check(db: Session, verification_id: str | None, document_hash: str) -> dict:
         h = normalize_hash(document_hash)
     except ValueError as e:
         raise VerifyError(422, str(e)) from e
+    cert = db.scalar(select(CertificateIssuance).where(CertificateIssuance.sha256 == h))
+    if cert is not None:
+        # 올린 파일이 '전자계약 확인서' 인 경우 — 발급 대장과 대조
+        cc = db.get(Contract, cert.contract_id)
+        if cc is None:
+            raise VerifyError(404, "검증번호를 찾을 수 없어요.")
+        if verification_id and (cc.verification_id or "") != verification_id.strip().upper():
+            return {"match": False, "uploaded_hash": h, "reason": "OTHER_CONTRACT", "kind": "CERTIFICATE",
+                    "message": "다른 계약의 확인서예요."}
+        return {**_public(db, cc), "match": True, "kind": "CERTIFICATE", "uploaded_hash": h, "issue_no": cert.issue_no,
+                "issued_at": cert.issued_at.isoformat(), "test_mode": cert.test_mode, "onchain": None,
+                "message": "회사가 발급한 전자계약 확인서 원본과 일치합니다."}
     if verification_id:
         info = lookup(db, verification_id)
         c = db.scalar(select(Contract).where(Contract.verification_id == info["verification_id"]))
@@ -76,6 +88,6 @@ def check(db: Session, verification_id: str | None, document_hash: str) -> dict:
         except Exception:  # noqa: BLE001
             onchain = {"recorded": None, "error": "블록체인 조회에 잠시 실패했어요."}
     return {
-        **info, "match": match, "uploaded_hash": h, "onchain": onchain,
+        **info, "match": match, "kind": "CONTRACT", "uploaded_hash": h, "onchain": onchain,
         "message": "문서의 디지털 지문이 기록된 값과 일치합니다." if match else "현재 문서의 디지털 지문이 기록된 값과 다릅니다.",
     }

@@ -286,3 +286,33 @@ test("로그인 후 외부 주소로 이동시키는 링크(오픈 리다이렉�
     expect(new URL(A.page.url()).host).toMatch(/^localhost/);
   }
 });
+
+test("법적 고지: 로그인 동의 · 서비스 역할 · 이자율 경고 · 완료 안내 · 확인서 진위 검증", async ({ browser }) => {
+  const P = await newParty(browser);
+  await P.page.goto("/login");
+  await expect(P.page.getByTestId("login-consent")).toContainText("이용약관");
+  await P.page.goto("/terms");
+  await expect(P.page.getByText("회사는 이용자 사이 계약의 당사자가 아니며", { exact: false })).toBeVisible();
+  await P.page.goto("/privacy");
+  await expect(P.page.getByTestId("legal-draft")).toBeVisible();
+
+  const { A, id } = await completeContract(browser);
+  await expect(A.page.getByTestId("completion-notice")).toContainText("직접 보관");
+  await expect(A.page.getByTestId("anchor-notice")).toContainText("효력");
+  const cert = await download(A.page, "dl-certificate");
+  const V = await newParty(browser);
+  await V.page.goto("/verify");
+  await V.page.getByTestId("verify-file").setInputFiles({ name: "확인서.pdf", mimeType: "application/pdf", buffer: cert });
+  await expect(V.page.getByTestId("verify-success")).toContainText("확인서");
+  await expect(V.page.getByTestId("verify-success")).toContainText("시험용");
+  await expect(V.page.getByTestId("verify-notice")).toContainText("유효한지");
+
+  await A.page.goto("/create");
+  await expect(A.page.getByTestId("service-role-notice")).toContainText("당사자가 아니며");
+  await A.page.goto("/");
+  await A.page.getByTestId("quick-loan").click();
+  await A.page.waitForURL(/\/contracts\/[a-f0-9]{32}$/);
+  await fillFields(A.page, { 이자율: "25" });
+  await expect(A.page.getByTestId("interest-warning")).toBeVisible();
+  void id;
+});

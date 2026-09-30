@@ -104,11 +104,17 @@ export function FieldInput({ f, value, onChange, disabled, error }: { f: Field; 
     default:
       input = <input id={id} data-testid={`input-${f.label}`} className={cls} value={s} disabled={disabled} maxLength={200} onChange={(e) => onChange(e.target.value)} />;
   }
+  const interestWarning = f.type === "NUMBER" && /이자|이율/.test(f.label) && Number(String(value ?? "").replace(/,/g, "")) > 20;
   return (
     <div className="py-1">
       {label}
       {input}
       {error && <p className="mt-1 text-[13px] text-warn">{error}</p>}
+      {interestWarning && (
+        <p data-testid="interest-warning" className="mt-1 text-[13px] text-[#b45309]">
+          이자제한법상 최고이자율(연 20%)을 넘는 부분은 효력이 없을 수 있어요. 금액과 이율을 다시 확인해 주세요.
+        </p>
+      )}
     </div>
   );
 }

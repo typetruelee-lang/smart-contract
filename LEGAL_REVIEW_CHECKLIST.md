@@ -35,3 +35,24 @@
 - [ ] 이용약관: 서비스 범위, 면책(계약 내용에 대한 책임은 당사자), 원문 보관 정책, 유료 서비스·환불
 - [ ] 개인정보처리방침 → `PRIVACY_CHECKLIST.md`
 - [ ] 전자금융·결제 관련 고지(인앱결제)
+
+## 6. 앱·문서에 들어간 안내 문구 (검토 대상 위치)
+
+| 위치 | 파일 | 요지 |
+|---|---|---|
+| 로그인 | `frontend/src/pages/Login.tsx` | 로그인 시 이용약관·개인정보처리방침 동의 간주 |
+| 계약 만들기 | `frontend/src/components/legal.tsx` `ServiceRoleNotice` | 회사는 계약 당사자가 아님 / 효력 제한 계약 유형 / 강행법규 위반 시 무효 가능 |
+| 템플릿 선택 | `frontend/src/pages/TemplatePick.tsx` | 템플릿은 예시, 법률 자문 아님 |
+| 이자율 입력 | `frontend/src/components/contract.tsx` | 이자제한법 최고이자율(연 20%) 초과 경고 |
+| 최종 확인 (4개 동의) | `frontend/src/pages/SignFlow.tsx` | 내용 확인 / 본인 의사 / 전자서명 동의 / **원본 직접 보관·원문 삭제 인지** (동의 문구 버전은 감사 로그에 기록) |
+| 완료 화면 | `components/legal.tsx` `CompletionNotice` | 보관 책임 / 제출 권장 / 확인서는 보증·공증 아님 |
+| 블록체인 기록 | `frontend/src/pages/Complete.tsx` | 동일성 확인일 뿐 효력 증명 아님 / 환불은 약관 기준 |
+| 검증 페이지 | `frontend/src/pages/Verify.tsx` | 검증 성공 = 파일 동일, 효력 판단 아님 |
+| 계약서 PDF 서명 정보 쪽 | `backend/app/templates/signature_page.html` | 유의사항 4~5항 |
+| 전자계약 체결 확인서 | `backend/app/templates/certificate.html` | 7. 유의사항 (보증·공증 아님, 당사자 아님, 법원 판단) |
+| 이용약관 · 개인정보처리방침 **초안** | `frontend/src/pages/Legal.tsx` | 서비스 성격, 원본 보관, 책임 제한(고의·중과실 제외), 환불, 금지 행위 |
+| 시험용 표시 | PDF 워터마크·바닥글 | 운영 본인확인·서명(토스인증)이 아니면 "시험용 · 법적 효력 없음" 자동 표시 |
+
+- [ ] 책임 제한 조항이 약관규제법·소비자 관련 법령상 무효가 되지 않는 범위인지
+- [ ] "로그인 시 동의 간주" 방식이 적절한지, 별도 체크 동의가 필요한지
+- [ ] 개인정보처리방침의 필수 기재사항 누락 여부

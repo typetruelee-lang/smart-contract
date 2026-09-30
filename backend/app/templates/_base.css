@@ -18,3 +18,11 @@ th { background: #f2f4f6; width: 30%; font-weight: 600; }
 h2 { font-size: 12.5pt; margin: 4.5mm 0 2.5mm; }
 .ok { color: #0b8a4a; font-weight: 700; }
 .warn { color: #d97706; font-weight: 700; }
+.watermark { position: fixed; top: 40%; left: -5%; width: 110%; text-align: center; transform: rotate(-28deg); font-size: 38pt; font-weight: 700; color: rgba(240, 68, 82, 0.13); z-index: 0; pointer-events: none; letter-spacing: 2px; }
+.notice { border: 1px solid #d1d6db; background: #f9fafb; padding: 3mm 4mm; font-size: 8.3pt; line-height: 1.6; color: #333d4b; }
+.notice ol { margin: 0; padding-left: 4mm; }
+.doc-head { border-bottom: 2px solid #191f28; padding-bottom: 2mm; margin-bottom: 4mm; }
+.kv { font-size: 8.5pt; color: #4e5968; }
+table.events th, table.events td { font-size: 7.6pt; padding: 3px 5px; }
+table.events th { width: auto; }
+.section-no { color: #3182f6; margin-right: 4px; }

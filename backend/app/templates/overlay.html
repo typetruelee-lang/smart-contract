@@ -7,4 +7,5 @@ body { position: relative; font-family: "Noto Sans CJK KR", "Noto Sans KR", sans
 .f img { max-width: 100%; max-height: 100%; }
 </style></head><body>
 {% for it in items %}<div class="f{% if it.type == 'LONG_TEXT' %} long{% endif %}" style="left:{{ it.x }}%;top:{{ it.y }}%;width:{{ it.w }}%;height:{{ it.h }}%;{% if it.size %}font-size:{{ it.size }}pt{% endif %}">{% if it.type == 'SIGNATURE' %}{% if it.src %}<img src="{{ it.src }}" alt="">{% endif %}{% else %}{{ it.text }}{% endif %}</div>{% endfor %}
+{% if test_mode %}<div style="position:absolute;top:42%;left:-5%;width:110%;text-align:center;transform:rotate(-28deg);font-size:34pt;font-weight:700;color:rgba(240,68,82,0.13)">시험용 · 법적 효력 없음</div>{% endif %}
 </body></html>

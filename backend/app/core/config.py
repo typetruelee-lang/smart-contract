@@ -92,6 +92,14 @@ class Settings(BaseSettings):
     RATE_LIMIT_VERIFY_PER_MINUTE: int = 30
 
     ADMIN_TOKEN: str = ""  # production 에서 /api/admin 접근용
+
+    # 발급자(회사) 정보 — 전자계약 확인서에 표시 (사업자 등록 후 입력)
+    COMPANY_NAME: str = "(사업자명 입력 필요)"
+    COMPANY_BIZ_NO: str = ""
+    COMPANY_REPRESENTATIVE: str = ""
+    COMPANY_ADDRESS: str = ""
+    COMPANY_CONTACT: str = ""
+    CONSENT_VERSION: str = "2026-09-30"  # 서명 전 동의 문구 버전 (문구를 바꾸면 날짜를 올린다)
     PDF_BROWSER_EXECUTABLE: str = ""
     TEST_RESULTS_PATH: str = str(ROOT_DIR / "test-results" / "summary.json")
 

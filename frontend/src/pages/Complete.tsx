@@ -4,6 +4,7 @@ import { Badge, Button, Card, ErrorView, Loading, Page, Row, Sheet, useToast } f
 import { ApiError, api, downloadFile } from "../lib/api";
 import { ANCHOR_LABEL, formatKst, shortHash, won } from "../lib/format";
 import { getBridge } from "../lib/tossBridge";
+import { CompletionNotice } from "../components/legal";
 import type { ContractView } from "../lib/types";
 
 export default function Complete() {
@@ -40,7 +41,7 @@ export default function Complete() {
     setBusy(kind);
     try {
       await downloadFile(`/api/contracts/${id}/pdf/${kind}`, kind === "contract" ? `${c!.contract_no}.pdf` : `${c!.contract_no}-전자계약확인서.pdf`);
-      toast(kind === "contract" ? "계약서 PDF 를 저장했어요. 안전하게 보관해 주세요." : "전자계약 확인서를 저장했어요.");
+      toast(kind === "contract" ? "계약서 PDF 를 저장했어요. 파일을 잘 보관해 주세요." : "전자계약 체결 확인서를 저장했어요.");
     } catch (e) {
       toast(e instanceof ApiError ? e.message : "파일을 받지 못했어요.", "error");
     } finally {
@@ -129,7 +130,7 @@ export default function Complete() {
 
       <div className="mt-5 flex flex-col gap-2">
         <Button onClick={() => dl("contract")} loading={busy === "contract"} disabled={c.purged} testid="dl-contract">계약서 PDF 저장</Button>
-        <Button variant="secondary" onClick={() => dl("certificate")} loading={busy === "certificate"} testid="dl-certificate">전자계약 확인서</Button>
+        <Button variant="secondary" onClick={() => dl("certificate")} loading={busy === "certificate"} testid="dl-certificate">전자계약 체결 확인서 (제출용)</Button>
       </div>
       <p className="mt-3 text-[13px] leading-5 text-grey-500">
         {c.purged ? "보관 기간이 지나 원본이 삭제되었어요. 내려받은 PDF 를 사용해 주세요." : `🔒 ${c.retention_note ?? ""} (삭제 예정: ${formatKst(c.purge_at)})`}
@@ -147,7 +148,8 @@ export default function Complete() {
       {c.blockchain_enabled && (
         <section className="mt-8 border-t border-grey-100 pt-6" data-testid="anchor-section">
           <h2 className="text-[19px] font-bold">🔐 계약을 블록체인에 기록</h2>
-          <p className="mt-2 text-[15px] leading-6 text-grey-600">계약서 원본은 저장하지 않고 디지털 지문만 기록해요. 나중에 누구나 계약서가 바뀌지 않았다는 걸 확인할 수 있어요.</p>
+          <p className="mt-2 text-[15px] leading-6 text-grey-600">계약서 원본은 저장하지 않고 디지털 지문만 기록해요. 나중에 누구나 계약서 파일이 바뀌지 않았는지 확인할 수 있어요.</p>
+          <p data-testid="anchor-notice" className="mt-1 text-[13px] leading-5 text-grey-500">기록은 파일이 같다는 것만 확인해 줄 뿐, 계약의 효력이나 내용이 옳다는 것을 증명하지는 않아요. 결제 후 기록이 끝내 실패하면 이용약관의 환불 기준에 따라 처리해요.</p>
           {an.status === "NOT_REQUESTED" ? (
             <div className="mt-4">
               {c.payment.status === "FAILED" || c.payment.status === "CANCELED" ? <p className="mb-2 text-[14px] text-warn" data-testid="payment-failed">결제가 완료되지 않아 기록하지 않았어요. 다시 시도할 수 있어요.</p> : null}
@@ -175,6 +177,7 @@ export default function Complete() {
         </section>
       )}
 
+      <CompletionNotice />
       <div className="mt-8 flex gap-2">
         <Button size="sm" variant="ghost" full={false} onClick={() => nav(`/contracts/${id}/evidence`)}>진행 기록 보기</Button>
         <Button size="sm" variant="ghost" full={false} onClick={() => nav("/")}>홈으로</Button>

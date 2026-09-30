@@ -1,1 +1,1 @@
-<!doctype html><html lang="ko"><head><meta charset="utf-8"><style>{% include "_base.css" %}</style></head><body>{{ body | safe }}</body></html>
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><style>{% include "_base.css" %}</style></head><body>{% if test_mode %}<div class="watermark">시험용 · 법적 효력 없음</div>{% endif %}{{ body | safe }}</body></html>

@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { ServiceRoleNotice } from "../components/legal";
 import { Card, Page } from "../components/ui";
 
 const ITEMS = [
@@ -24,6 +25,7 @@ export default function CreateMenu() {
           </Card>
         ))}
       </div>
+      <ServiceRoleNotice />
     </Page>
   );
 }

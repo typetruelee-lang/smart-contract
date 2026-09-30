@@ -4,6 +4,7 @@ import { Badge, Button, Card, Page, Section } from "../components/ui";
 import { api } from "../lib/api";
 import { useAuth } from "../lib/auth";
 import { STATUS_LABEL } from "../lib/format";
+import { LegalFooter } from "../components/legal";
 import type { ContractSummary } from "../lib/types";
 
 const QUICK = [
@@ -33,7 +34,7 @@ export default function Home() {
         <h1 className="mt-2 text-[28px] leading-[38px] font-bold">
           계약서를 만들고
           <br />
-          안전하게 서명하세요.
+          간편하게 서명하세요.
         </h1>
         <p className="mt-3 text-[15px] leading-6 text-grey-600">계약서는 내가 보관하고, 계약의 디지털 지문은 누구나 검증할 수 있어요.</p>
       </div>
@@ -99,6 +100,7 @@ export default function Home() {
           </div>
         </Card>
       </Section>
+      <LegalFooter />
     </Page>
   );
 }

@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-09-29 23:19:52 UTC",
+  "generated_at": "2026-09-30 00:29:11 UTC",
   "suites": {
     "backend (pytest)": {
-      "passed": 179,
+      "passed": 184,
       "failed": 0,
       "skipped": 0
     },
@@ -12,7 +12,7 @@
       "skipped": 0
     },
     "e2e-functional (playwright)": {
-      "passed": 17,
+      "passed": 18,
       "failed": 0,
       "skipped": 0
     },
@@ -22,7 +22,7 @@
       "skipped": 0
     }
   },
-  "passed": 217,
+  "passed": 223,
   "failed": 0,
   "skipped": 0,
   "typecheck_ok": true,

@@ -1,42 +1,84 @@
-<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>전자계약 확인서</title>
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>전자계약 체결 확인서</title>
 <style>{% include "_base.css" %}
+@page { margin: 16mm 16mm 18mm 16mm; }
 .head { display: flex; justify-content: space-between; align-items: flex-start; }
-.qr { text-align: center; font-size: 8pt; color: #6b7684; }
-.qr img { width: 110px; height: 110px; }
+.qr { text-align: center; font-size: 7.5pt; color: #6b7684; }
+.qr img { width: 96px; height: 96px; }
+h1 { text-align: left; margin: 0 0 1mm; font-size: 19pt; }
+h2 { font-size: 11.5pt; }
+body { font-size: 9.5pt; }
 </style></head><body>
-<div class="head"><div><h1 style="text-align:left">전자계약 확인서</h1>
-<div class="small">발급 시각 {{ issued_at | kst }}</div></div>
-<div class="qr"><img src="{{ qr }}" alt="검증 QR"><br>QR 로 검증하기</div></div>
-<h2>계약 정보</h2>
+{% if test_mode %}<div class="watermark">시험용 · 법적 효력 없음</div>{% endif %}
+<div class="head doc-head"><div>
+<h1>전자계약 체결 확인서</h1>
+<div class="kv">발급번호 <b>{{ issue_no }}</b> · 발급일시 {{ issued_at | kst }}</div>
+<div class="kv">발급자 {{ issuer.company }}{% if issuer.biz_no %} (사업자등록번호 {{ issuer.biz_no }}){% endif %}{% if issuer.contact %} · 문의 {{ issuer.contact }}{% endif %}</div>
+</div>
+<div class="qr"><img src="{{ qr }}" alt="검증 QR"><br>QR 로 검증</div></div>
+
+<h2><span class="section-no">1.</span>계약 정보</h2>
 <table>
 <tr><th>계약번호</th><td>{{ contract_no }}</td></tr>
 <tr><th>계약명</th><td>{{ title }}</td></tr>
-<tr><th>계약 상태</th><td><span class="ok">계약 완료</span></td></tr>
-<tr><th>계약 완료 시각</th><td>{{ completed_at | kst }}</td></tr>
-<tr><th>최종 문서 버전</th><td>v{{ version_no }}</td></tr>
+<tr><th>계약 상태</th><td>계약 완료 (모든 당사자 전자서명 완료)</td></tr>
+<tr><th>계약 완료 일시</th><td>{{ completed_at | kst }}</td></tr>
+<tr><th>최종 문서 버전</th><td>v{{ version_no }}{% if version_count > 1 %} (총 {{ version_count }}개 버전 중 최종){% endif %}</td></tr>
 </table>
-<h2>당사자</h2>
+
+<h2><span class="section-no">2.</span>당사자 · 본인확인 · 전자서명</h2>
 <table>
-<tr><th>구분</th><td><b>당사자 / 본인확인 / 전자서명 / 서명 시각</b></td></tr>
+<tr><th>구분</th><td><b>서명자(토스 계정) / 본인확인 / 전자서명 / 서명 수단</b></td></tr>
 {% for p in parties %}
-<tr><th>{{ p.role_label }}</th><td>{{ p.name_masked }} / {% if p.identity_status == "VERIFIED" %}본인확인 완료{% else %}본인확인 미완료{% endif %} / {% if p.signed_at %}전자서명 완료{% else %}미서명{% endif %} / {{ p.signed_at | kst }}</td></tr>
+<tr><th>{{ p.role_label }}</th><td>{{ p.name_masked }} / {% if p.identity_status == "VERIFIED" %}완료 {{ p.identity_verified_at | kst }}{% else %}미완료{% endif %} / {% if p.signed_at %}완료 {{ p.signed_at | kst }}{% else %}미서명{% endif %} / {% if p.provider == "production" %}토스인증서 전자서명{% else %}시험용(모의) 서명{% endif %}</td></tr>
 {% endfor %}
 </table>
-<h2>계약서의 디지털 지문</h2>
+<p class="small">당사자 이름은 개인정보 보호를 위해 일부 가려서 표시합니다. 전체 이름은 계약서 본문에 있습니다.</p>
+
+<h2><span class="section-no">3.</span>문서 동일성 정보 (디지털 지문)</h2>
 <table>
-<tr><th>Document Hash<br><span class="small">SHA-256 (계약서 PDF 파일)</span></th><td class="mono">{{ document_hash }}</td></tr>
+<tr><th>계약서 PDF 의 SHA-256</th><td class="mono">{{ document_hash }}</td></tr>
+<tr><th>서명 대상 내용의 SHA-256</th><td class="mono">{{ content_hash }}</td></tr>
+<tr><th>계약서 PDF 크기</th><td>{{ "{:,}".format(document_size) }} 바이트</td></tr>
 <tr><th>검증 ID</th><td><b>{{ verification_id }}</b></td></tr>
 <tr><th>검증 주소</th><td class="mono">{{ verify_url }}</td></tr>
 </table>
-<h2>블록체인 기록</h2>
+
+<h2><span class="section-no">4.</span>블록체인 기록 (선택)</h2>
 <table>
-<tr><th>기록 상태</th><td>{% if anchor.status == "CONFIRMED" %}<span class="ok">기록 완료</span>{% elif anchor.status in ("PENDING", "RETRY", "SUBMITTED") %}<span class="warn">기록 진행 중</span>{% elif anchor.status == "FAILED" %}<span class="warn">기록 실패 (고객센터 문의)</span>{% else %}기록하지 않음 (선택 기능){% endif %}</td></tr>
-{% if anchor.tx_id %}<tr><th>Blockchain TX</th><td class="mono">{{ anchor.tx_id }}</td></tr>
+<tr><th>기록 상태</th><td>{% if anchor.status == "CONFIRMED" %}기록 완료{% elif anchor.status in ("PENDING", "RETRY", "SUBMITTED") %}기록 진행 중{% elif anchor.status == "FAILED" %}기록 실패{% else %}기록하지 않음 (선택 기능){% endif %}</td></tr>
+{% if anchor.tx_id %}<tr><th>트랜잭션(TX)</th><td class="mono">{{ anchor.tx_id }}</td></tr>
 <tr><th>네트워크</th><td>{{ anchor.network }}</td></tr>
-<tr><th>기록 시각</th><td>{{ anchor.confirmed_at | kst }}</td></tr>{% endif %}
+<tr><th>기록 일시</th><td>{{ anchor.confirmed_at | kst }}</td></tr>{% endif %}
 {% if anchor.merkle_root %}<tr><th>Merkle Root</th><td class="mono">{{ anchor.merkle_root }}</td></tr>{% endif %}
 </table>
-<p class="small">· 이 확인서는 계약서 원본이 아니며, 계약서 PDF 의 디지털 지문(Hash)과 서명 기록을 증명합니다.<br>
-· 계약서 PDF 를 검증 페이지에 올리면 파일이 한 글자라도 바뀌었는지 확인할 수 있습니다.<br>
-· 블록체인에는 개인정보나 계약 내용이 아닌 디지털 지문만 기록됩니다.</p>
+<p class="small">블록체인에는 개인정보나 계약 내용이 아니라 계약서 PDF 의 SHA-256 값만 기록됩니다.</p>
+
+<h2><span class="section-no">5.</span>진행 기록 (감사 로그)</h2>
+<table class="events">
+<tr><th>#</th><th>일시 (KST)</th><th>내용</th><th>당사자</th><th>버전</th><th>관련 지문 (앞 16자리)</th></tr>
+{% for e in events %}<tr><td>{{ e.seq }}</td><td>{{ e.timestamp | kst }}</td><td>{{ e.label }}</td><td>{{ e.role or "-" }}</td><td>{% if e.version %}v{{ e.version }}{% else %}-{% endif %}</td><td class="mono">{{ (e.hash or "-")[:16] }}</td></tr>
+{% endfor %}
+</table>
+<table style="margin-top:2mm">
+<tr><th>감사 로그 무결성</th><td>{% if chain_valid %}정상 — 각 기록이 직전 기록의 지문을 포함하는 사슬 구조이며, 누락·수정이 발견되지 않았습니다.{% else %}이상 발견 — 고객센터에 문의하세요.{% endif %}</td></tr>
+<tr><th>마지막 기록의 지문</th><td class="mono">{{ chain_head }}</td></tr>
+</table>
+
+<h2><span class="section-no">6.</span>검증 방법</h2>
+<div class="notice"><ol>
+<li><b>검증 페이지:</b> 위 QR 또는 검증 주소에 접속해 계약서 PDF 를 올리면, 기록된 SHA-256 과 같은지 바로 확인합니다. 파일은 서버로 전송되지 않습니다.</li>
+<li><b>직접 확인:</b> 컴퓨터에서 계약서 PDF 의 SHA-256 을 계산해 3번 항목의 값과 비교합니다.<br>
+Windows: <span class="mono">certutil -hashfile 계약서.pdf SHA256</span> · macOS/Linux: <span class="mono">shasum -a 256 계약서.pdf</span></li>
+<li><b>이 확인서의 진위:</b> 이 확인서 PDF 파일도 검증 페이지에 올리면 발급 대장({{ issue_no }})과 일치하는지 확인할 수 있습니다.</li>
+</ol></div>
+
+<h2><span class="section-no">7.</span>유의사항</h2>
+<div class="notice"><ol>
+<li>이 확인서는 {{ issuer.company }}(이하 "회사")가 운영하는 전자계약 서비스의 기록을 바탕으로, 계약서 파일의 동일성과 진행 기록을 확인해 주는 문서입니다. <b>계약의 성립·유효성·적법성·이행을 보증하거나 공증하는 문서가 아닙니다.</b></li>
+<li>회사는 계약의 당사자가 아니며 계약 내용의 작성에 관여하지 않습니다. 계약 내용과 그 결과에 대한 책임은 당사자에게 있습니다.</li>
+<li>본인확인과 전자서명은 {% if test_mode %}시험용(모의) 절차로 진행되었습니다{% else %}토스인증(본인확인·전자서명)을 통해 진행되었습니다{% endif %}. 당사자 이름은 일부 가려서 표시합니다.</li>
+<li>회사는 보존 정책에 따라 계약서 원문을 일정 기간이 지나면 삭제하며, 디지털 지문과 진행 기록만 보관합니다. 계약서 원본 파일은 당사자가 직접 보관해야 합니다.</li>
+<li>전자문서와 전자서명의 법적 효력, 증거로서의 증명력은 관련 법령과 법원의 판단에 따릅니다. 이 확인서는 계약서 원본 파일과 함께 제출하는 것을 권장합니다.</li>
+{% if test_mode %}<li><b>이 확인서는 시험용(개발 환경)으로 발급되어 법적 효력이 없습니다.</b></li>{% endif %}
+</ol></div>
 </body></html>

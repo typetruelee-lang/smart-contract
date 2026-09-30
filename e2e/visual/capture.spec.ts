@@ -68,7 +68,7 @@ test("화면 캡처", async ({ browser }) => {
   await shot(B.page, "06a-identity.png");
   await B.page.getByTestId("identity-btn").click();
   await B.page.getByText("계약 최종 확인").waitFor();
-  for (const t of ["계약 내용을 확인했습니다.", "본인의 의사로 계약합니다.", "전자서명으로 계약을 체결합니다."]) await B.page.getByText(t, { exact: true }).click();
+  for (const t of ["계약 내용을 확인했습니다.", "본인의 의사로 계약합니다.", "전자서명으로 계약을 체결합니다.", "완성된 계약서 파일은 제가 직접 보관합니다. 서비스는 일정 기간이 지나면 원문을 삭제한다는 것을 알고 있습니다."]) await B.page.getByText(t, { exact: true }).click();
   await B.page.getByTestId("confirm-checks").scrollIntoViewIfNeeded();
   await shot(B.page, "06b-final-confirm.png");
   await B.page.getByTestId("review-btn").click();
@@ -81,7 +81,7 @@ test("화면 캡처", async ({ browser }) => {
   await A.page.goto(`/contracts/${id}/sign`);
   await A.page.getByTestId("identity-btn").click();
   await A.page.getByText("계약 최종 확인").waitFor();
-  for (const t of ["계약 내용을 확인했습니다.", "본인의 의사로 계약합니다.", "전자서명으로 계약을 체결합니다."]) await A.page.getByText(t, { exact: true }).click();
+  for (const t of ["계약 내용을 확인했습니다.", "본인의 의사로 계약합니다.", "전자서명으로 계약을 체결합니다.", "완성된 계약서 파일은 제가 직접 보관합니다. 서비스는 일정 기간이 지나면 원문을 삭제한다는 것을 알고 있습니다."]) await A.page.getByText(t, { exact: true }).click();
   await A.page.getByTestId("review-btn").click();
   await drawSignature(A.page);
   await A.page.getByTestId("sign-btn").click();
@@ -113,7 +113,7 @@ test("화면 캡처", async ({ browser }) => {
     await pg.goto(`/contracts/${id2}/sign`);
     await pg.getByTestId("identity-btn").click();
     await pg.getByText("계약 최종 확인").waitFor();
-    for (const t of ["계약 내용을 확인했습니다.", "본인의 의사로 계약합니다.", "전자서명으로 계약을 체결합니다."]) await pg.getByText(t, { exact: true }).click();
+    for (const t of ["계약 내용을 확인했습니다.", "본인의 의사로 계약합니다.", "전자서명으로 계약을 체결합니다.", "완성된 계약서 파일은 제가 직접 보관합니다. 서비스는 일정 기간이 지나면 원문을 삭제한다는 것을 알고 있습니다."]) await pg.getByText(t, { exact: true }).click();
     await pg.getByTestId("review-btn").click();
     await drawSignature(pg);
     await pg.getByTestId("sign-btn").click();

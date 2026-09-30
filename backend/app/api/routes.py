@@ -279,6 +279,7 @@ class ReviewIn(BaseModel):
     content_checked: bool
     own_will: bool
     e_signature_consent: bool
+    retention_acknowledged: bool = False
 
 
 @router.post("/contracts/{cid}/review")

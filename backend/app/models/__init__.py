@@ -207,3 +207,16 @@ class AppKV(Base):
     __tablename__ = "app_kv"
     key: Mapped[str] = mapped_column(String(64), primary_key=True)
     value: Mapped[str] = mapped_column(Text)
+
+
+class CertificateIssuance(Base):
+    """전자계약 확인서 발급 대장 — 발급된 확인서 파일의 진위(동일성)를 나중에 확인할 수 있게 한다."""
+
+    __tablename__ = "certificate_issuances"
+    issue_no: Mapped[str] = mapped_column(String(32), primary_key=True)
+    contract_id: Mapped[str] = mapped_column(ForeignKey("contracts.id"), index=True)
+    sha256: Mapped[str] = mapped_column(String(64), unique=True)
+    issued_by: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    anchor_status: Mapped[str] = mapped_column(String(16), default="NOT_REQUESTED")
+    test_mode: Mapped[bool] = mapped_column(Boolean, default=True)
+    issued_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

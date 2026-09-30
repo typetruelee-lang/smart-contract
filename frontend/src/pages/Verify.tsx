@@ -15,6 +15,10 @@ interface PublicInfo {
 }
 interface CheckResult extends Partial<PublicInfo> {
   match: boolean;
+  kind?: "CONTRACT" | "CERTIFICATE";
+  issue_no?: string;
+  issued_at?: string;
+  test_mode?: boolean;
   uploaded_hash: string;
   message: string;
   reason?: string;
@@ -107,8 +111,13 @@ export default function Verify() {
         <Card className={`mt-4 p-5 ${result.match ? "bg-[#e5f8ee]" : "bg-[#fff0f1]"}`} testid={result.match ? "verify-success" : "verify-failed"}>
           <p className={`text-[20px] font-bold ${result.match ? "text-ok" : "text-warn"}`}>{result.match ? "✓ 검증 성공" : "⚠ 검증 실패"}</p>
           <p className="mt-2 text-[15px] leading-6 text-grey-800">
-            {result.match ? <>문서의 디지털 지문이<br />기록된 값과 일치합니다.</> : result.reason === "NOT_FOUND" ? <>이 문서의 디지털 지문과<br />일치하는 계약 기록이 없어요.</> : <>현재 문서의 디지털 지문이<br />기록된 값과 다릅니다.</>}
+            {result.match && result.kind === "CERTIFICATE" ? <>회사가 발급한 전자계약 체결 확인서<br />원본과 일치합니다. (발급번호 {result.issue_no})</>
+              : result.match ? <>문서의 디지털 지문이<br />기록된 값과 일치합니다.</>
+              : result.reason === "NOT_FOUND" ? <>이 문서의 디지털 지문과<br />일치하는 계약 기록이 없어요.</>
+              : result.reason === "OTHER_CONTRACT" ? <>다른 계약의 확인서예요.</>
+              : <>현재 문서의 디지털 지문이<br />기록된 값과 다릅니다.</>}
           </p>
+          {result.match && result.test_mode && <p className="mt-1 text-[13px] font-semibold text-warn">시험용으로 발급된 확인서예요 (법적 효력 없음).</p>}
           <div className="mt-3 border-t border-black/5 pt-2">
             <Row label="올린 파일" mono>{shortHash(result.uploaded_hash)}</Row>
             {result.document_hash && <Row label="기록된 값" mono>{shortHash(result.document_hash)}</Row>}
@@ -117,7 +126,10 @@ export default function Verify() {
           </div>
         </Card>
       )}
-      <p className="mt-6 text-[13px] leading-5 text-grey-500">이 페이지에는 이름·연락처·계약 내용 같은 개인정보가 표시되지 않아요.</p>
+      <p data-testid="verify-notice" className="mt-6 text-[13px] leading-5 text-grey-500">
+        검증 성공은 올린 파일이 기록된 파일과 똑같다는 뜻이에요. 계약이 법적으로 유효한지, 내용이 옳은지는 판단하지 않아요.
+        이 페이지에는 이름·연락처·계약 내용 같은 개인정보가 표시되지 않아요.
+      </p>
     </Page>
   );
 }

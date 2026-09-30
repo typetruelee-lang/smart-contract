@@ -8,11 +8,11 @@
 
 | 구분 | PASS | FAIL |
 |---|---|---|
-| 백엔드 (pytest: 단위·통합·보안·EVM 스마트컨트랙트) | 179 | 0 |
+| 백엔드 (pytest: 단위·통합·보안·EVM 스마트컨트랙트·증빙 문서) | 184 | 0 |
 | 프론트엔드 (vitest) | 20 | 0 |
-| E2E 기능 (Playwright, 모바일 iPhone 13 에뮬레이션) | 17 | 0 |
+| E2E 기능 (Playwright, 모바일 iPhone 13 에뮬레이션) | 18 | 0 |
 | E2E 화면 캡처 | 1 (22장) | 0 |
-| **합계** | **217** | **0** |
+| **합계** | **223** | **0** |
 
 추가로 확인한 것:
 
@@ -44,6 +44,11 @@
 | Toss Mock (로그인 · Bearer 토큰 모드 · provider 전환) | PASS | `test_providers.py`, `test_bearer_token_mode_for_apps_in_toss` |
 | Retention (종류별 보존·삭제 후 검증 유지) | PASS | `test_retention_*`, `test_draft_expires_after_draft_ttl` |
 | 앱인토스 `.ait` 번들 빌드 | PASS | `kyeyakhaja.ait` 생성 |
+| 제출용 증빙 PDF (발급번호·쪽번호·진행 기록·검증 방법·유의사항) | PASS | `test_legal_documents.py` |
+| 확인서 자체 진위 확인 (발급 대장 대조) | PASS | `test_certificate_itself_can_be_verified`, E2E 법적 고지 |
+| 시험용 워터마크 (모의 서명 시) / 운영 서명 시 미표시 | PASS | `test_contract_pdf_has_footer_notice_and_test_watermark`, `test_production_grade_signatures_have_no_test_watermark` |
+| 서명 전 원본 보관 동의(4번째) + 동의 문구 버전 기록 | PASS | `test_review_requires_retention_acknowledgement_and_records_consent` |
+| 법적 고지 문구 표시 (로그인·만들기·완료·검증·이자율 경고·약관) | PASS | E2E `법적 고지` |
 
 ## 지시서 시나리오 1~8
 
@@ -90,7 +95,7 @@
 
 ## E2E
 
-PASS — 17/17 (로컬) · 15/15 + 1 SKIP (Docker 스택)
+PASS — 18/18 (로컬) · 15/15 + 1 SKIP (Docker 스택)
 
 ## Security
 

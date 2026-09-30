@@ -87,7 +87,9 @@ def create_app() -> FastAPI:
     @app.get("/api/config")
     def public_config():
         return {"app_name": s.APP_NAME, "env": s.APP_ENV, "blockchain_enabled": s.BLOCKCHAIN_ENABLED, "blockchain_price": s.BLOCKCHAIN_PRICE,
-                "mock_login": not s.is_production, "toss_provider": s.TOSS_PROVIDER, "max_upload_mb": s.MAX_UPLOAD_MB}
+                "mock_login": not s.is_production, "toss_provider": s.TOSS_PROVIDER, "max_upload_mb": s.MAX_UPLOAD_MB,
+                "company_name": s.COMPANY_NAME, "consent_version": s.CONSENT_VERSION,
+                "legal_grade": s.SIGNATURE_PROVIDER == "production" and s.IDENTITY_PROVIDER == "production"}
 
     app.include_router(routes.router)
     app.include_router(admin.router)
