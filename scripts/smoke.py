@@ -50,7 +50,7 @@ def sign(c, cid):
     v = ok(c.get(f"/api/contracts/{cid}"))
     s = ok(c.post(f"/api/contracts/{cid}/identity/start"))
     ok(c.post(f"/api/contracts/{cid}/identity/complete", json={"session_id": s["session_id"]}))
-    ok(c.post(f"/api/contracts/{cid}/review", json={"version_no": v["current_version_no"], "content_checked": True, "own_will": True, "e_signature_consent": True}))
+    ok(c.post(f"/api/contracts/{cid}/review", json={"version_no": v["current_version_no"], "content_checked": True, "own_will": True, "e_signature_consent": True, "retention_acknowledged": True}))
     st = ok(c.post(f"/api/contracts/{cid}/sign/start"))
     return ok(c.post(f"/api/contracts/{cid}/sign/complete", json={"request_id": st["request_id"], "version_no": st["version_no"], "signature_image": png()}))
 
