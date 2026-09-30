@@ -26,6 +26,10 @@ test("화면 캡처", async ({ browser }) => {
 
   await A.page.goto("/create");
   await shot(A.page, "02-contract-create.png");
+  await A.page.goto("/create/template");
+  await A.page.getByTestId("template-loan").waitFor();
+  await shot(A.page, "02a-template-pick.png", true);
+  await A.page.goto("/create");
 
   // 텍스트 계약서 + 빈칸 추천
   await A.page.getByTestId("create-new").click();

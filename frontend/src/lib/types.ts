@@ -126,6 +126,7 @@ export interface ContractSummary {
 
 export interface TemplateSummary {
   id: string;
+  group?: "everyday" | "employment";
   name: string;
   subtitle: string;
   title: string;

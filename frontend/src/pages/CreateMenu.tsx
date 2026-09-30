@@ -6,7 +6,7 @@ const ITEMS = [
   { to: "/create/text?mode=new", emoji: "✍️", title: "새 계약서 작성", desc: "빈 화면에서 직접 써요", id: "new" },
   { to: "/create/pdf", emoji: "📄", title: "내 PDF 불러오기", desc: "가지고 있는 계약서 PDF 에 빈칸을 만들어요", id: "pdf" },
   { to: "/create/text?mode=paste", emoji: "📋", title: "텍스트 붙여넣기", desc: "복사한 계약서 내용을 붙여넣어요", id: "paste" },
-  { to: "/create/template", emoji: "🗂️", title: "템플릿 선택", desc: "차용증·용역·근로·거래 계약서", id: "template" },
+  { to: "/create/template", emoji: "🗂️", title: "템플릿 선택", desc: "차용증·용역·거래 · 근로계약서 3종", id: "template" },
 ];
 
 export default function CreateMenu() {

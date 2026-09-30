@@ -165,6 +165,12 @@ test("템플릿으로 시작 + 편집/미리보기 전환 + 필수값 검증", a
   await login(A.page, "hong");
   await A.page.goto("/");
   await A.page.getByTestId("quick-employment").click();
+  await A.page.waitForURL(/\/create\/template#employment$/);
+  // 일상 계약과 근로계약서가 따로 묶여 보인다
+  await expect(A.page.getByRole("heading", { name: "자주 쓰는 계약" })).toBeVisible();
+  await expect(A.page.getByRole("heading", { name: "근로계약서" })).toBeVisible();
+  await expect(A.page.getByTestId("template-employment")).toBeInViewport();
+  await A.page.getByTestId("template-employment").click();
   await A.page.waitForURL(/\/contracts\/[a-f0-9]{32}$/);
   await A.page.getByTestId("tab-preview").click();
   await expect(A.page.getByTestId("contract-preview")).toContainText("표준근로계약서");

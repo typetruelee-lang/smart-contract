@@ -4,14 +4,15 @@ import { Badge, Button, Card, Page, Section } from "../components/ui";
 import { api } from "../lib/api";
 import { useAuth } from "../lib/auth";
 import { STATUS_LABEL } from "../lib/format";
+import { lookOf } from "../lib/templates";
 import { LegalFooter } from "../components/legal";
 import type { ContractSummary } from "../lib/types";
 
 const QUICK = [
-  { id: "loan", name: "차용증", emoji: "💰" },
-  { id: "service", name: "용역계약", emoji: "🛠️" },
-  { id: "employment", name: "근로계약", emoji: "👷" },
-  { id: "goods", name: "거래계약", emoji: "📦" },
+  { id: "loan", name: "차용증", desc: "돈을 빌려줄 때", to: "/create/template?t=loan" },
+  { id: "service", name: "용역계약", desc: "일을 맡길 때", to: "/create/template?t=service" },
+  { id: "goods", name: "거래계약", desc: "물건을 사고팔 때", to: "/create/template?t=goods" },
+  { id: "employment", name: "근로계약서", desc: "정규직·일용직·단시간", to: "/create/template#employment" },
 ];
 
 export default function Home() {
@@ -57,10 +58,14 @@ export default function Home() {
       <Section title="자주 쓰는 계약">
         <div className="grid grid-cols-2 gap-3">
           {QUICK.map((q) => (
-            <Card key={q.id} testid={`quick-${q.id}`} onClick={() => start(`/create/template?t=${q.id}`)} className="flex flex-col gap-2">
-              <span className="text-[28px]">{q.emoji}</span>
-              <span className="text-[16px] font-semibold">{q.name}</span>
-            </Card>
+            <button key={q.id} data-testid={`quick-${q.id}`} onClick={() => start(q.to)}
+              className="flex flex-col items-start gap-3 rounded-3xl bg-grey-50 p-4 text-left transition duration-150 ease-out active:scale-[0.97] active:bg-grey-100">
+              <span aria-hidden="true" className={`grid h-11 w-11 place-items-center rounded-2xl text-[22px] ${lookOf(q.id).tint}`}>{lookOf(q.id).icon}</span>
+              <span>
+                <span className="block text-[16px] font-semibold">{q.name}</span>
+                <span className="mt-0.5 block text-[13px] text-grey-500">{q.desc}</span>
+              </span>
+            </button>
           ))}
         </div>
       </Section>

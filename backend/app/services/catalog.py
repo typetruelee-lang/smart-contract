@@ -29,7 +29,7 @@ WEEKDAYS = ["월요일", "화요일", "수요일", "목요일", "금요일", "�
 
 TEMPLATES: dict[str, dict] = {
     "loan": {
-        "id": "loan", "name": "차용증", "subtitle": "돈을 빌리고 빌려줄 때", "contract_type": "loan",
+        "id": "loan", "group": "everyday", "name": "차용증", "subtitle": "돈을 빌리고 빌려줄 때", "contract_type": "loan",
         "title": "금전소비대차계약서",
         "body": """채권자 {채권자 이름}(이하 "갑")과 채무자 {채무자 이름}(이하 "을")은 다음과 같이 금전소비대차계약을 체결한다.
 
@@ -59,7 +59,7 @@ TEMPLATES: dict[str, dict] = {
         ],
     },
     "service": {
-        "id": "service", "name": "용역계약", "subtitle": "일을 맡기고 맡을 때", "contract_type": "service",
+        "id": "service", "group": "everyday", "name": "용역계약", "subtitle": "일을 맡기고 맡을 때", "contract_type": "service",
         "title": "용역계약서",
         "body": """발주자 {발주자 이름}(이하 "갑")과 수행자 {수행자 이름}(이하 "을")은 아래 용역에 관하여 계약을 체결한다.
 
@@ -87,7 +87,7 @@ TEMPLATES: dict[str, dict] = {
         ],
     },
     "employment": {
-        "id": "employment", "name": "표준근로계약서", "subtitle": "정규직 등 기간의 정함이 없는 근로자", "contract_type": "employment",
+        "id": "employment", "group": "employment", "name": "표준근로계약서", "subtitle": "정규직 등 기간의 정함이 없는 근로자", "contract_type": "employment",
         "title": "표준근로계약서 (기간의 정함이 없는 경우)",
         "body": """{사업체명}(이하 "사업주"라 함)과(와) {근로자 성명}(이하 "근로자"라 함)은 다음과 같이 근로계약을 체결한다.
 
@@ -138,7 +138,7 @@ TEMPLATES: dict[str, dict] = {
         ],
     },
     "employment_daily": {
-        "id": "employment_daily", "name": "일용근로자 표준근로계약서", "subtitle": "하루·단기로 일하는 근로자", "contract_type": "employment",
+        "id": "employment_daily", "group": "employment", "name": "일용근로자 표준근로계약서", "subtitle": "하루·단기로 일하는 근로자", "contract_type": "employment",
         "title": "일용근로자 표준근로계약서",
         "body": """{사업체명}(이하 "사업주"라 함)과(와) {근로자 성명}(이하 "근로자"라 함)은 다음과 같이 근로계약을 체결한다.
 
@@ -190,7 +190,7 @@ TEMPLATES: dict[str, dict] = {
         ],
     },
     "employment_parttime": {
-        "id": "employment_parttime", "name": "단시간근로자 표준근로계약서", "subtitle": "아르바이트 등 통상근로자보다 짧게 일하는 근로자", "contract_type": "employment",
+        "id": "employment_parttime", "group": "employment", "name": "단시간근로자 표준근로계약서", "subtitle": "아르바이트 등 통상근로자보다 짧게 일하는 근로자", "contract_type": "employment",
         "title": "단시간근로자 표준근로계약서",
         "body": """{사업체명}(이하 "사업주"라 함)과(와) {근로자 성명}(이하 "근로자"라 함)은 다음과 같이 근로계약을 체결한다.
 
@@ -255,7 +255,7 @@ TEMPLATES: dict[str, dict] = {
         ],
     },
     "goods": {
-        "id": "goods", "name": "거래계약", "subtitle": "물건을 사고팔 때", "contract_type": "goods",
+        "id": "goods", "group": "everyday", "name": "거래계약", "subtitle": "물건을 사고팔 때", "contract_type": "goods",
         "title": "물품거래계약서",
         "body": """매도인 {매도인 이름}(이하 "갑")과 매수인 {매수인 이름}(이하 "을")은 다음 물품의 거래에 관하여 계약을 체결한다.
 
@@ -298,9 +298,15 @@ TEMPLATE_NOTES = {
 }
 
 
+# 화면 표시 순서: 누구나 쓰는 일상 계약 → 전문 서식(근로계약서)
+GROUPS = {"everyday": "자주 쓰는 계약", "employment": "근로계약서"}
+
+
 def list_templates() -> list[dict]:
-    return [{"id": t["id"], "name": t["name"], "subtitle": t["subtitle"], "title": t["title"], "note": TEMPLATE_NOTES.get(t["id"])}
-            for t in TEMPLATES.values()]
+    items = [{"id": t["id"], "group": t["group"], "name": t["name"], "subtitle": t["subtitle"], "title": t["title"],
+              "note": TEMPLATE_NOTES.get(t["id"])} for t in TEMPLATES.values()]
+    order = list(GROUPS)
+    return sorted(items, key=lambda t: order.index(t["group"]))
 
 
 def get_template(tid: str) -> dict:

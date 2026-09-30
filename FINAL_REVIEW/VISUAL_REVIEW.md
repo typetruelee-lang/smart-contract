@@ -17,6 +17,7 @@
 | 로그인 (테스트 계정) | 00-login.png | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | OK |
 | 홈 | 01-home.png | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | OK |
 | 계약 만들기 | 02-contract-create.png | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | OK |
+| 템플릿 선택 (자주 쓰는 계약 / 근로계약서 묶음) | 02a-template-pick.png | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | OK |
 | 빈칸 자동 추천 | 02b-field-suggestions.png | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | OK |
 | PDF 업로드 | 03-pdf-upload.png | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | OK |
 | PDF 빈칸 편집기 | 04-field-editor.png | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | OK |

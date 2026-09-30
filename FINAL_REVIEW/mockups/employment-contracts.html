@@ -74,6 +74,20 @@ h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(26px, 
 .card p { margin: 2px 0 0; color: var(--screen-muted); font-size: 13px; line-height: 1.5; }
 .card .note { margin-top: 8px; color: var(--screen-muted); font-size: 12px; }
 .new { display: inline-block; margin-left: 6px; font-size: 11px; font-weight: 700; color: var(--accent); background: var(--accent-soft); border-radius: 6px; padding: 1px 6px; vertical-align: 2px; }
+.glabel { font-size: 13px; font-weight: 700; color: var(--screen-muted); margin: 0 2px 8px; }
+.tcard { display: flex; align-items: center; gap: 12px; background: var(--screen-2); border-radius: 22px; padding: 12px 14px; }
+.tcard + .tcard { margin-top: 8px; }
+.ico { flex: none; width: 42px; height: 42px; border-radius: 14px; display: grid; place-items: center; font-size: 21px; }
+.ico.sm { width: 38px; height: 38px; font-size: 19px; border-radius: 13px; }
+.tx { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.tx b { font-size: 15px; }
+.tx small { color: var(--screen-muted); font-size: 12px; }
+.tx em { font-style: normal; color: var(--accent); font-size: 11.5px; font-weight: 500; margin-top: 3px; }
+.chev { width: 18px; height: 18px; flex: none; color: var(--screen-muted); opacity: .6; }
+.wgroup { border: 1px solid var(--screen-2); border-radius: 22px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,27,55,.05); }
+.wrow { display: flex; align-items: center; gap: 12px; padding: 12px 14px; }
+.wrow + .wrow { border-top: 1px solid var(--screen-2); }
+.wrow.on { background: var(--accent-soft); }
 .fine { color: var(--screen-muted); font-size: 12px; line-height: 1.6; margin-top: 14px; }
 .chips { display: flex; gap: 6px; flex-wrap: wrap; margin: 2px 0 12px; }
 .chip { font-size: 12px; font-weight: 700; border-radius: 8px; padding: 3px 8px; background: var(--screen-2); color: var(--screen-muted); }
@@ -242,20 +256,18 @@ td .todo { color: var(--warn); font-weight: 700; }
 
   function render(kind) {
     var k = KIND[kind];
-    var list = [["차용증", "돈을 빌리고 빌려줄 때 · 금전소비대차계약서"], ["용역계약", "일을 맡기고 맡을 때 · 용역계약서"],
-      ["표준근로계약서", "정규직 등 기간의 정함이 없는 근로자"], ["일용근로자 표준근로계약서", "하루·단기로 일하는 근로자"], ["단시간근로자 표준근로계약서", "아르바이트 등 통상근로자보다 짧게 일하는 근로자"], ["거래계약", "물건을 사고팔 때 · 물품매매계약서"]];
-    var notes = {
-      "표준근로계약서": "고용노동부 표준근로계약서 항목을 따랐어요. 계약서를 근로자에게 교부해야 하고, 사업주는 3년간 보존해야 해요.",
-      "일용근로자 표준근로계약서": "고용노동부 일용근로자 표준근로계약서 항목을 따랐어요. 시간외·야간·휴일근로수당은 법정 가산율 이상이어야 해요.",
-      "단시간근로자 표준근로계약서": "요일마다 근로시간과 휴게시간을 적어요. 약속한 시간을 넘겨 일하면 통상임금의 50% 이상을 더 줘야 하고, 1주 15시간 미만이면 주휴일·연차가 적용되지 않아요."
-    };
-    var cards = list.map(function (c) {
-      var isNew = notes[c[0]];
-      return '<div class="card' + (c[0] === k.name ? " on" : "") + '"><h4>' + c[0] + (isNew ? '<span class="new">고용노동부 서식</span>' : '') + '</h4><p>' + c[1] + '</p>' +
-        (isNew ? '<p class="note">' + notes[c[0]] + '</p>' : '') + '</div>';
-    }).join("");
-    var s1 = chrome("템플릿 선택", '<p class="q">어떤 계약인가요?</p>' + cards +
-      '<p class="fine">템플릿은 일반적인 예시일 뿐 법률 자문이 아니에요. 기간제 근로자는 별도 서식이 필요할 수 있어요.</p>');
+    var everyday = [["loan", "💰", "#fff6e0", "차용증", "돈을 빌리고 빌려줄 때"], ["service", "🛠️", "#eaf4ff", "용역계약", "일을 맡기고 맡을 때"], ["goods", "📦", "#eefaf1", "거래계약", "물건을 사고팔 때"]];
+    var work = [["🧑‍💼", "#f1efff", "표준근로계약서", "정규직 등 기간의 정함이 없는 근로자"], ["🦺", "#fff1e8", "일용근로자 표준근로계약서", "하루·단기로 일하는 근로자"], ["⏰", "#e9f8f8", "단시간근로자 표준근로계약서", "아르바이트 등 짧게 일하는 근로자"]];
+    var chev = '<svg class="chev" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    var s1 = chrome("템플릿 선택", '<p class="q" style="margin-bottom:2px">어떤 계약인가요?</p><p class="fine" style="margin:0 0 16px">고르면 빈칸만 채우면 되는 계약서가 바로 만들어져요.</p>' +
+      '<div class="glabel">자주 쓰는 계약</div>' +
+      everyday.map(function (e) { return '<div class="tcard"><span class="ico" style="background:' + e[2] + '">' + e[1] + '</span><span class="tx"><b>' + e[3] + '</b><small>' + e[4] + '</small></span>' + chev + '</div>'; }).join("") +
+      '<div class="glabel" style="margin-top:22px;display:flex;justify-content:space-between"><span>근로계약서</span><span style="font-weight:400">고용노동부 표준 서식</span></div>' +
+      '<div class="wgroup">' + work.map(function (w) {
+        var on = w[2] === k.name;
+        return '<div class="wrow' + (on ? " on" : "") + '"><span class="ico sm" style="background:' + w[1] + '">' + w[0] + '</span><span class="tx"><b>' + w[2] + '</b><small>' + w[3] + '</small><em>작성 전 확인할 점 ⌄</em></span>' + chev + '</div>';
+      }).join("") + '</div>' +
+      '<p class="fine">템플릿은 일반적인 예시일 뿐 법률 자문이 아니에요.</p>');
 
     var periodFields = k.period.map(function (p) { return field(p[0], p[1], p[2]); }).join("");
     var s2 = kind === "part" ? chrome(esc(k.doc),
@@ -331,7 +343,7 @@ td .todo { color: var(--warn); font-weight: 700; }
       step("05", "근로자 서명", "동의 4개 + 손글씨 서명", s5) +
       step("06", "완료 · 교부", "양쪽 모두 PDF 저장", s6);
     document.getElementById("title").textContent = k.title;
-    var on = document.querySelector("#flow .card.on");
+    var on = document.querySelector("#flow .wrow.on");
     if (on) on.parentElement.scrollTop = Math.max(0, on.offsetTop - on.parentElement.offsetTop - 90);
   }
 

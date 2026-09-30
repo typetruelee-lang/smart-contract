@@ -365,3 +365,11 @@ def test_parttime_template_requires_overtime_premium_of_50_percent():
     assert normalize_value(rate, "50") == "50"
     with pytest.raises(FieldValueError):
         normalize_value(rate, "30")
+
+
+def test_templates_grouped_everyday_first():
+    from app.services import catalog
+    ts = catalog.list_templates()
+    assert [t["id"] for t in ts if t["group"] == "everyday"] == ["loan", "service", "goods"]
+    assert {t["id"] for t in ts if t["group"] == "employment"} == {"employment", "employment_daily", "employment_parttime"}
+    assert [t["group"] for t in ts] == sorted([t["group"] for t in ts], key=list(catalog.GROUPS).index)
