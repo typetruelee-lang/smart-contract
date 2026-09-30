@@ -1,4 +1,4 @@
-"""테스트 데이터 — 계약서 4종 × (정상/빈/잘못된/긴/한글/특수문자/숫자/날짜)."""
+"""테스트 데이터 — 계약서 5종 × (정상/빈/잘못된/긴/한글/특수문자/숫자/날짜)."""
 from __future__ import annotations
 
 import pytest
@@ -6,10 +6,17 @@ import pytest
 from app.services import catalog
 from tests.conftest import sign
 
-TEMPLATE_IDS = ["loan", "service", "goods", "employment"]
+TEMPLATE_IDS = ["loan", "service", "goods", "employment", "employment_daily"]
+
+
+def _v(f, default):
+    """형식(pattern)이 정해진 칸(예: 근로시간 HH:MM)은 형식에 맞는 값을 쓴다."""
+    return "09:00" if (f.get("validation") or {}).get("pattern") else default
 
 
 def _good_value(f):
+    if f["type"] == "TEXT":
+        return _v(f, "홍길동")
     return {
         "TEXT": "홍길동", "NUMBER": "1500000", "DATE": "2027-06-30", "PHONE": "010-1234-5678", "EMAIL": "test@example.com",
         "LONG_TEXT": "특약 없음", "CHECKBOX": True,
@@ -81,10 +88,10 @@ def test_template_invalid_data_rejected(client_factory, tid):
 
 @pytest.mark.parametrize("tid", TEMPLATE_IDS)
 @pytest.mark.parametrize("kind,maker", [
-    ("long", lambda f: ("가" * 200 if f["type"] == "TEXT" else "나" * 2000 if f["type"] == "LONG_TEXT" else _good_value(f))),
-    ("korean", lambda f: ("대한민국 서울특별시 종로구" if f["type"] == "TEXT" else "한글 특약: 가나다라마바사" if f["type"] == "LONG_TEXT" else _good_value(f))),
-    ("special", lambda f: ("!@#$%^&*()_+-=[]{};':\",./<>?`~\\|" if f["type"] in ("TEXT", "LONG_TEXT") else _good_value(f))),
-    ("numbers", lambda f: ("999999999999" if f["type"] == "NUMBER" else "12345" if f["type"] == "TEXT" else _good_value(f))),
+    ("long", lambda f: (_v(f, "가" * 200) if f["type"] == "TEXT" else "나" * 2000 if f["type"] == "LONG_TEXT" else _good_value(f))),
+    ("korean", lambda f: (_v(f, "대한민국 서울특별시 종로구") if f["type"] == "TEXT" else "한글 특약: 가나다라마바사" if f["type"] == "LONG_TEXT" else _good_value(f))),
+    ("special", lambda f: (_v(f, "!@#$%^&*()_+-=[]{};':\",./<>?`~\\|") if f["type"] in ("TEXT", "LONG_TEXT") else _good_value(f))),
+    ("numbers", lambda f: ("999999999999" if f["type"] == "NUMBER" else _v(f, "12345") if f["type"] == "TEXT" else _good_value(f))),
     ("dates", lambda f: ("2028-02-29" if f["type"] == "DATE" else _good_value(f))),
 ])
 def test_template_data_kinds_render_pdf(client_factory, tid, kind, maker):

@@ -167,15 +167,33 @@ test("템플릿으로 시작 + 편집/미리보기 전환 + 필수값 검증", a
   await A.page.getByTestId("quick-employment").click();
   await A.page.waitForURL(/\/contracts\/[a-f0-9]{32}$/);
   await A.page.getByTestId("tab-preview").click();
-  await expect(A.page.getByTestId("contract-preview")).toContainText("표준 근로계약서");
+  await expect(A.page.getByTestId("contract-preview")).toContainText("표준근로계약서");
   await A.page.getByTestId("tab-edit").click();
-  await fillFields(A.page, { 임금: "abc" });
-  await expect(A.page.getByTestId("input-임금")).toHaveValue(""); // 숫자 칸은 숫자만 입력됨
-  await fillFields(A.page, { 임금: "2500000", "임금 지급일": "10" });
+  await fillFields(A.page, { 임금액: "abc" });
+  await expect(A.page.getByTestId("input-임금액")).toHaveValue(""); // 숫자 칸은 숫자만 입력됨
+  await fillFields(A.page, { 임금액: "2500000", 임금지급일: "10" });
   await A.page.getByTestId("save-values").click();
   await expect(A.page.getByRole("alert").first()).toContainText("저장했어요");
   await A.page.getByTestId("tab-preview").click();
   await expect(A.page.getByTestId("contract-preview")).toContainText("2,500,000");
+});
+
+test("일용근로자 표준근로계약서: 안내 표시 + 근로시간 형식 검증", async ({ browser }) => {
+  const A = await newParty(browser);
+  await login(A.page, "hong");
+  await A.page.goto("/create/template");
+  await expect(A.page.getByTestId("template-note-employment_daily")).toContainText("3년간 보존");
+  await A.page.getByTestId("template-employment_daily").click();
+  await A.page.waitForURL(/\/contracts\/[a-f0-9]{32}$/);
+  await fillFields(A.page, { "근로 시작 시각": "9시" });
+  await A.page.getByTestId("save-values").click();
+  await expect(A.page.getByText("HH:MM").first()).toBeVisible();
+  await fillFields(A.page, { "근로 시작 시각": "09:00", "근로 종료 시각": "18:00" });
+  await A.page.getByTestId("save-values").click();
+  await expect(A.page.getByRole("alert").first()).toContainText("저장했어요");
+  await A.page.getByTestId("tab-preview").click();
+  await expect(A.page.getByTestId("contract-preview")).toContainText("일용근로자 표준근로계약서");
+  await expect(A.page.getByTestId("contract-preview")).toContainText("09:00");
 });
 
 test("내용 변경 시 새 버전 + 기존 서명 무효화 안내", async ({ browser }) => {

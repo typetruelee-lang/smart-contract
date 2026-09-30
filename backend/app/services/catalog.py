@@ -1,15 +1,24 @@
-"""자주 쓰는 계약 템플릿 4종.
+"""자주 쓰는 계약 템플릿 5종.
 
 본문에는 `{라벨}` 자리표시자를 쓰고, 각 자리표시자의 입력 유형/담당자를 fields 로 정의한다.
 주의: 템플릿 문구는 일반적인 예시이며 법률 자문을 대체하지 않는다 (LEGAL_REVIEW_CHECKLIST.md).
 """
 from __future__ import annotations
 
-from app.services.fields import FieldSpec
+from app.services.fields import PATTERN_HINTS, TIME_PATTERN, FieldSpec
 
 
 def F(label, type="TEXT", assignee="A", required=True, options=None):  # noqa: A002
     return {"label": label, "type": type, "assignee": assignee, "required": required, "options": options or []}
+
+
+def T(label, required=True):
+    """시각 입력 (HH:MM, 24시간제)"""
+    return {"label": label, "type": "TEXT", "assignee": "A", "required": required, "options": [],
+            "validation": {"pattern": TIME_PATTERN, "hint": PATTERN_HINTS[TIME_PATTERN], "maxLength": 5}}
+
+
+WEEKDAYS = ["월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일"]
 
 
 TEMPLATES: dict[str, dict] = {
@@ -72,30 +81,106 @@ TEMPLATES: dict[str, dict] = {
         ],
     },
     "employment": {
-        "id": "employment", "name": "근로계약", "subtitle": "사람을 고용할 때", "contract_type": "employment",
-        "title": "표준 근로계약서",
-        "body": """사업주 {사업주 이름}(이하 "사업주")과 근로자 {근로자 이름}(이하 "근로자")은 다음과 같이 근로계약을 체결한다.
+        "id": "employment", "name": "표준근로계약서", "subtitle": "정규직 등 기간의 정함이 없는 근로자", "contract_type": "employment",
+        "title": "표준근로계약서 (기간의 정함이 없는 경우)",
+        "body": """{사업체명}(이하 "사업주"라 함)과(와) {근로자 성명}(이하 "근로자"라 함)은 다음과 같이 근로계약을 체결한다.
 
-1. 근로 시작일: {근로 시작일}
-2. 근무 장소: {근무 장소}
-3. 업무 내용: {업무 내용}
-4. 소정근로시간: 하루 {하루 근로시간} 시간
-5. 근무일: {근무일}
-6. 임금: 월(시간)급 {임금} 원, 지급일: 매월 {임금 지급일} 일
-7. 연차유급휴가: 근로기준법에서 정하는 바에 따라 부여함
-8. 사회보험 적용: {사회보험 적용}
-9. 근로계약서 교부: 사업주는 근로계약을 체결함과 동시에 본 계약서를 근로자에게 교부함
-10. 기타: 이 계약에 정함이 없는 사항은 근로기준법령에 의함
+1. 근로개시일: {근로개시일}부터
+2. 근무장소: {근무장소}
+3. 업무의 내용: {업무의 내용}
+4. 소정근로시간: {근로 시작 시각}부터 {근로 종료 시각}까지 (휴게시간: {휴게 시작 시각} ~ {휴게 종료 시각})
+5. 근무일/휴일: 매주 {주 근무일수}일 근무, 주휴일 매주 {주휴일}
+6. 임금
+ - 임금 형태 및 금액: {임금 형태} {임금액} 원
+ - 상여금: {상여금 여부} {상여금액} 원
+ - 기타급여(제수당 등): {기타급여}
+ - 임금지급일: 매월(매주 또는 매일) {임금지급일} (휴일의 경우는 전일 지급)
+ - 지급방법: {지급방법}
+7. 연차유급휴가
+ - 연차유급휴가는 근로기준법에서 정하는 바에 따라 부여함
+8. 사회보험 적용여부
+ {고용보험} {산재보험} {국민연금} {건강보험}
+9. 근로계약서 교부
+ - 사업주는 근로계약을 체결함과 동시에 본 계약서를 사본하여 근로자의 교부요구와 관계없이 근로자에게 교부함(근로기준법 제17조 이행). 본 계약서는 전자문서로 교부하며, 근로자는 언제든지 내려받아 출력할 수 있다.
+10. 근로계약, 취업규칙 등의 성실한 이행의무
+ - 사업주와 근로자는 각자가 근로계약, 취업규칙, 단체협약을 지키고 성실하게 이행하여야 함
+11. 기타
+ - 이 계약에 정함이 없는 사항은 근로기준법령에 의함
+{특약사항}
 
-근로자 연락처: {근로자 연락처}
+(사업주) 사업체명: {사업체명} (전화: {사업체 전화})
+주소: {사업체 주소}
+대표자: {대표자 성명} {사업주 서명}
 
-사업주 {사업주 이름} {사업주 서명}
-근로자 {근로자 이름} {근로자 서명}""",
+(근로자) 주소: {근로자 주소}
+연락처: {근로자 연락처}
+성명: {근로자 성명} {근로자 서명}""",
         "fields": [
-            F("사업주 이름"), F("근로자 이름", assignee="B"), F("근로 시작일", "DATE"), F("근무 장소"), F("업무 내용", "LONG_TEXT"),
-            F("하루 근로시간", "NUMBER"), F("근무일", "SELECT", options=["주 5일 (월~금)", "주 6일", "기타(특약 참조)"]),
-            F("임금", "NUMBER"), F("임금 지급일", "NUMBER"), F("사회보험 적용", "SELECT", options=["4대보험 모두 적용", "일부 적용", "해당 없음"]),
-            F("근로자 연락처", "PHONE", assignee="B"), F("사업주 서명", "SIGNATURE"), F("근로자 서명", "SIGNATURE", assignee="B"),
+            F("사업체명"), F("사업체 전화", "PHONE"), F("사업체 주소"), F("대표자 성명"),
+            F("근로개시일", "DATE"), F("근무장소"), F("업무의 내용", "LONG_TEXT"),
+            T("근로 시작 시각"), T("근로 종료 시각"), T("휴게 시작 시각"), T("휴게 종료 시각"),
+            F("주 근무일수", "NUMBER"), F("주휴일", "SELECT", options=WEEKDAYS),
+            F("임금 형태", "SELECT", options=["월급", "일급", "시간급"]), F("임금액", "NUMBER"),
+            F("상여금 여부", "SELECT", options=["있음", "없음"]), F("상여금액", "NUMBER", required=False),
+            F("기타급여", "LONG_TEXT", required=False), F("임금지급일", "TEXT"),
+            F("지급방법", "SELECT", options=["근로자에게 직접지급", "근로자 명의 예금통장에 입금"]),
+            F("고용보험", "CHECKBOX", required=False), F("산재보험", "CHECKBOX", required=False),
+            F("국민연금", "CHECKBOX", required=False), F("건강보험", "CHECKBOX", required=False),
+            F("특약사항", "LONG_TEXT", required=False),
+            F("근로자 성명", assignee="B"), F("근로자 주소", assignee="B"), F("근로자 연락처", "PHONE", assignee="B"),
+            F("사업주 서명", "SIGNATURE"), F("근로자 서명", "SIGNATURE", assignee="B"),
+        ],
+    },
+    "employment_daily": {
+        "id": "employment_daily", "name": "일용근로자 표준근로계약서", "subtitle": "하루·단기로 일하는 근로자", "contract_type": "employment",
+        "title": "일용근로자 표준근로계약서",
+        "body": """{사업체명}(이하 "사업주"라 함)과(와) {근로자 성명}(이하 "근로자"라 함)은 다음과 같이 근로계약을 체결한다.
+
+1. 근로계약기간: {근로 시작일}부터 {근로 종료일}까지
+2. 근무장소: {근무장소}
+3. 업무의 내용: {업무의 내용}
+4. 소정근로시간: {근로 시작 시각}부터 {근로 종료 시각}까지 (휴게시간: {휴게 시작 시각} ~ {휴게 종료 시각})
+5. 근무일/휴일: 매주 {주 근무일수}일(또는 매일단위) 근무, 주휴일 매주 {주휴일} (해당자에 한함)
+ ※ 주휴일은 1주간 소정근로일을 모두 근로한 경우에 주당 1일을 유급으로 부여
+6. 임금
+ - 임금 형태 및 금액: {임금 형태} {임금액} 원
+ - 상여금: {상여금 여부} {상여금액} 원
+ - 기타 제수당(시간외·야간·휴일근로수당 등): {제수당 내역}
+ - 임금지급일: 매월(매주 또는 매일) {임금지급일} (휴일의 경우는 전일 지급)
+ - 지급방법: {지급방법}
+7. 연차유급휴가
+ - 연차유급휴가는 근로기준법에서 정하는 바에 따라 부여함
+8. 사회보험 적용여부
+ {고용보험} {산재보험} {국민연금} {건강보험}
+9. 근로계약서 교부
+ - 사업주는 근로계약을 체결함과 동시에 본 계약서를 사본하여 근로자의 교부요구와 관계없이 근로자에게 교부함(근로기준법 제17조 이행). 본 계약서는 전자문서로 교부하며, 근로자는 언제든지 내려받아 출력할 수 있다.
+10. 근로계약, 취업규칙 등의 성실한 이행의무
+ - 사업주와 근로자는 각자가 근로계약, 취업규칙, 단체협약을 지키고 성실하게 이행하여야 함
+11. 기타
+ - 이 계약에 정함이 없는 사항은 근로기준법령에 의함
+{특약사항}
+
+(사업주) 사업체명: {사업체명} (전화: {사업체 전화})
+주소: {사업체 주소}
+대표자: {대표자 성명} {사업주 서명}
+
+(근로자) 주소: {근로자 주소}
+연락처: {근로자 연락처}
+성명: {근로자 성명} {근로자 서명}""",
+        "fields": [
+            F("사업체명"), F("사업체 전화", "PHONE"), F("사업체 주소"), F("대표자 성명"),
+            F("근로 시작일", "DATE"), F("근로 종료일", "DATE"), F("근무장소"), F("업무의 내용", "LONG_TEXT"),
+            T("근로 시작 시각"), T("근로 종료 시각"), T("휴게 시작 시각"), T("휴게 종료 시각"),
+            F("주 근무일수", "NUMBER"), F("주휴일", "SELECT", options=WEEKDAYS + ["해당 없음"]),
+            F("임금 형태", "SELECT", options=["일급", "시간급", "월급"]), F("임금액", "NUMBER"),
+            F("상여금 여부", "SELECT", options=["있음", "없음"]), F("상여금액", "NUMBER", required=False),
+            F("제수당 내역", "LONG_TEXT", required=False), F("임금지급일", "TEXT"),
+            F("지급방법", "SELECT", options=["근로자에게 직접지급", "근로자 명의 예금통장에 입금"]),
+            F("고용보험", "CHECKBOX", required=False), F("산재보험", "CHECKBOX", required=False),
+            F("국민연금", "CHECKBOX", required=False), F("건강보험", "CHECKBOX", required=False),
+            F("특약사항", "LONG_TEXT", required=False),
+            F("근로자 성명", assignee="B"), F("근로자 주소", assignee="B"), F("근로자 연락처", "PHONE", assignee="B"),
+            F("사업주 서명", "SIGNATURE"), F("근로자 서명", "SIGNATURE", assignee="B"),
         ],
     },
     "goods": {
@@ -134,11 +219,18 @@ TEMPLATES: dict[str, dict] = {
 
 CONTRACT_TYPES = {"general": "일반", "loan": "금전소비대차", "service": "용역", "employment": "근로", "goods": "물품거래"}
 
+# 템플릿별 안내 (법정 기재사항 · 보존 의무 등) — 화면과 문서에 표시
+TEMPLATE_NOTES = {
+    "employment": "고용노동부 표준근로계약서(기간의 정함이 없는 경우) 항목을 따랐어요. 근로기준법 제17조에 따라 임금·근로시간·휴일·연차휴가 등을 반드시 적어야 하고, 계약서를 근로자에게 교부해야 해요. 사업주는 계약서를 3년간 보존해야 해요. 임금은 최저임금 이상이어야 하고, 단시간·기간제 근로자는 별도 양식이 필요할 수 있어요.",
+    "employment_daily": "고용노동부 일용근로자 표준근로계약서 항목을 따랐어요. 계약서를 근로자에게 교부해야 하고, 사업주는 3년간 보존해야 해요. 임금은 최저임금 이상이어야 하며, 시간외·야간·휴일근로수당은 법에서 정한 가산율 이상이어야 해요.",
+}
+
 
 def list_templates() -> list[dict]:
-    return [{"id": t["id"], "name": t["name"], "subtitle": t["subtitle"], "title": t["title"]} for t in TEMPLATES.values()]
+    return [{"id": t["id"], "name": t["name"], "subtitle": t["subtitle"], "title": t["title"], "note": TEMPLATE_NOTES.get(t["id"])}
+            for t in TEMPLATES.values()]
 
 
 def get_template(tid: str) -> dict:
     t = TEMPLATES[tid]
-    return {**t, "fields": [FieldSpec(**f).model_dump() for f in t["fields"]]}
+    return {**t, "note": TEMPLATE_NOTES.get(tid), "fields": [FieldSpec(**f).model_dump() for f in t["fields"]]}

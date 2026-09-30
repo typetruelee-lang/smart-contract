@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>계약하자 근로계약서 목업</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+/* Layout: 설명 머리말 → 계약서 종류 탭 → 실제 앱 흐름 순서대로 휴대폰 화면 6개 (넓으면 3열, 좁으면 1열) → 법적 요건 대조표 */
+:root {
+  --ground: #eef1f5;       /* 페이지 바탕 (토스 회색에 푸른 기) */
+  --ink: #191f28;          /* 본문 글자 */
+  --muted: #6b7684;
+  --line: #d9dee4;
+  --accent: #3182f6;       /* 토스 블루 */
+  --accent-soft: #e8f3ff;
+  --warn: #e42939;
+  --ok: #0a8a5f;
+  --screen: #ffffff;       /* 앱 화면 */
+  --screen-2: #f2f4f6;
+  --screen-ink: #191f28;
+  --screen-muted: #8b95a1;
+  --device: #1d2430;       /* 휴대폰 테두리 */
+  --paper: #ffffff;        /* 계약서 종이 — 두 테마에서 동일 */
+  --paper-ink: #1b1f24;
+  --paper-fill: #1b64da;
+  --font-display: "IBM Plex Sans KR", "Noto Sans KR", system-ui, sans-serif;
+  --font-ui: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #10141a; --ink: #e7ebf0; --muted: #98a2ae; --line: #2a313b;
+    --accent: #4d94ff; --accent-soft: #19304f; --warn: #ff5b68; --ok: #37c28f;
+    --screen: #17171c; --screen-2: #24252b; --screen-ink: #f2f4f6; --screen-muted: #8b95a1; --device: #000000;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --ground: #10141a; --ink: #e7ebf0; --muted: #98a2ae; --line: #2a313b;
+  --accent: #4d94ff; --accent-soft: #19304f; --warn: #ff5b68; --ok: #37c28f;
+  --screen: #17171c; --screen-2: #24252b; --screen-ink: #f2f4f6; --screen-muted: #8b95a1; --device: #000000;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--ground); color: var(--ink); font-family: var(--font-ui); font-size: 15px; line-height: 1.6; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-inline: 20px; padding-block: 40px 64px; }
+header.top { display: flex; flex-wrap: wrap; gap: 24px 48px; align-items: end; justify-content: space-between; }
+.brand { font-family: var(--font-display); font-weight: 700; color: var(--accent); font-size: 14px; letter-spacing: .04em; }
+h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(26px, 4vw, 38px); line-height: 1.25; margin: 6px 0 10px; text-wrap: balance; }
+.lede { color: var(--muted); max-width: 60ch; margin: 0; }
+.tabs { display: inline-flex; padding: 4px; border-radius: 14px; background: var(--screen); border: 1px solid var(--line); gap: 4px; }
+.tabs button { font: inherit; font-weight: 700; font-size: 15px; border: 0; border-radius: 10px; padding: 10px 16px; cursor: pointer; background: transparent; color: var(--muted); }
+.tabs button[aria-selected="true"] { background: var(--accent); color: #fff; }
+.tabs button:focus-visible, .btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.flow { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 40px 28px; margin-top: 40px; }
+.step { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.step-cap { display: flex; gap: 10px; align-items: baseline; }
+.step-cap b { font-family: var(--font-display); color: var(--accent); font-size: 14px; font-variant-numeric: tabular-nums; }
+.step-cap span { font-weight: 700; }
+.step-cap small { display: block; color: var(--muted); font-size: 13px; font-weight: 400; }
+.phone { width: 100%; max-width: 360px; border-radius: 38px; padding: 10px; background: var(--device); box-shadow: 0 18px 40px -22px rgba(16, 24, 40, .55); }
+.screen { position: relative; height: 700px; border-radius: 30px; overflow: hidden; background: var(--screen); color: var(--screen-ink); display: flex; flex-direction: column; font-size: 14px; }
+.status { height: 34px; display: flex; align-items: center; justify-content: space-between; padding: 0 22px; font-size: 12px; font-weight: 700; flex: none; }
+.nav { display: flex; align-items: center; gap: 8px; padding: 6px 16px 10px; font-weight: 700; font-size: 16px; flex: none; }
+.nav .back { font-size: 20px; line-height: 1; color: var(--screen-ink); }
+.body { flex: 1; overflow: auto; padding: 4px 20px 16px; min-height: 0; }
+.cta { flex: none; padding: 12px 20px 22px; background: var(--screen); display: flex; flex-direction: column; gap: 8px; }
+.btn { font: inherit; font-weight: 700; font-size: 16px; border: 0; border-radius: 14px; padding: 15px; text-align: center; background: var(--accent); color: #fff; }
+.btn.sub { background: var(--accent-soft); color: var(--accent); }
+.q { font-size: 21px; font-weight: 700; line-height: 1.4; margin: 6px 0 16px; }
+.card { border: 1px solid var(--screen-2); background: var(--screen); border-radius: 16px; padding: 14px 16px; }
+.card + .card { margin-top: 10px; }
+.card.on { border: 2px solid var(--accent); background: var(--accent-soft); padding: 13px 15px; }
+.card h4 { margin: 0; font-size: 16px; }
+.card p { margin: 2px 0 0; color: var(--screen-muted); font-size: 13px; line-height: 1.5; }
+.card .note { margin-top: 8px; color: var(--screen-muted); font-size: 12px; }
+.new { display: inline-block; margin-left: 6px; font-size: 11px; font-weight: 700; color: var(--accent); background: var(--accent-soft); border-radius: 6px; padding: 1px 6px; vertical-align: 2px; }
+.fine { color: var(--screen-muted); font-size: 12px; line-height: 1.6; margin-top: 14px; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; margin: 2px 0 12px; }
+.chip { font-size: 12px; font-weight: 700; border-radius: 8px; padding: 3px 8px; background: var(--screen-2); color: var(--screen-muted); }
+.chip.blue { background: var(--accent-soft); color: var(--accent); }
+.seg { display: grid; grid-template-columns: 1fr 1fr; background: var(--screen-2); border-radius: 12px; padding: 3px; margin-bottom: 14px; }
+.seg span { text-align: center; padding: 7px; border-radius: 9px; font-weight: 700; font-size: 13px; color: var(--screen-muted); }
+.seg span.on { background: var(--screen); color: var(--screen-ink); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+.group { font-size: 12px; font-weight: 700; color: var(--screen-muted); margin: 16px 0 6px; letter-spacing: .02em; }
+.fld { display: flex; flex-direction: column; gap: 5px; padding: 5px 0; }
+.fld label { display: flex; font-size: 13px; font-weight: 500; }
+.fld label .t { margin-left: auto; font-size: 11px; color: var(--screen-muted); font-weight: 400; }
+.fld label .req { color: var(--warn); margin-left: 2px; }
+.in { border: 1px solid var(--screen-2); border-radius: 12px; padding: 10px 13px; font-size: 15px; background: var(--screen); display: flex; justify-content: space-between; gap: 8px; }
+.in.err { border-color: var(--warn); }
+.in.ro { background: var(--screen-2); color: var(--screen-muted); }
+.in .ph { color: var(--screen-muted); }
+.errmsg { color: var(--warn); font-size: 12px; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.checks { display: flex; flex-direction: column; gap: 10px; }
+.ck { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; line-height: 1.5; }
+.ck i { flex: none; width: 22px; height: 22px; border-radius: 7px; background: var(--accent); color: #fff; display: grid; place-items: center; font-style: normal; font-size: 13px; font-weight: 700; margin-top: 1px; }
+.ck i.off { background: var(--screen-2); color: transparent; }
+.summary { background: var(--screen-2); border-radius: 16px; padding: 14px 16px; display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; font-size: 13px; }
+.summary dt { color: var(--screen-muted); }
+.summary dd { margin: 0; font-weight: 500; }
+.pad { border: 1.5px dashed var(--screen-muted); border-radius: 16px; height: 150px; position: relative; display: grid; place-items: center; }
+.pad svg { width: 78%; height: 70%; }
+.pad small { position: absolute; bottom: 8px; right: 12px; color: var(--screen-muted); font-size: 11px; }
+.done { display: grid; place-items: center; text-align: center; padding-top: 22px; }
+.done .mark { width: 64px; height: 64px; border-radius: 50%; background: var(--accent); color: #fff; display: grid; place-items: center; font-size: 30px; font-weight: 700; }
+.done h3 { font-size: 20px; margin: 16px 0 4px; }
+.done p { margin: 0; color: var(--screen-muted); font-size: 13px; }
+.box { background: var(--screen-2); border-radius: 16px; padding: 14px 16px; font-size: 12.5px; line-height: 1.6; color: var(--screen-muted); margin-top: 14px; }
+.box strong { color: var(--screen-ink); display: block; margin-bottom: 4px; font-size: 13px; }
+.box ul { margin: 0; padding-left: 16px; }
+.box.alert { background: var(--accent-soft); color: var(--screen-ink); }
+.box.alert strong { color: var(--accent); }
+.states { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 14px; }
+.states div { background: var(--screen-2); border-radius: 12px; padding: 8px; text-align: center; font-size: 11px; color: var(--screen-muted); }
+.states b { display: block; font-size: 12px; color: var(--screen-ink); }
+/* 계약서 종이 (실제 PDF 서식과 같은 구성) */
+.paperwrap { background: var(--screen-2); border-radius: 14px; padding: 12px; }
+.paper { background: var(--paper); color: var(--paper-ink); border-radius: 4px; padding: 18px 16px 14px; font-size: 10.5px; line-height: 1.75; box-shadow: 0 1px 4px rgba(0,0,0,.12); }
+.paper .no { text-align: right; color: #8b95a1; font-size: 8.5px; }
+.paper h2 { font-size: 14.5px; text-align: center; margin: 6px 0 12px; letter-spacing: -.01em; }
+.paper p { margin: 0; white-space: pre-wrap; }
+.paper .v { color: var(--paper-ink); font-weight: 700; border-bottom: 1.2px solid var(--paper-fill); padding: 0 1px; }
+.paper .sig { display: inline-block; min-width: 54px; border-bottom: 1px dashed #b0b8c1; color: #8b95a1; font-size: 8.5px; vertical-align: -2px; }
+.paper .sig svg { width: 58px; height: 18px; display: block; }
+.paper .foot { margin-top: 12px; padding-top: 6px; border-top: 1px solid #e5e8eb; font-size: 8px; color: #8b95a1; display: flex; justify-content: space-between; }
+.cap { color: var(--muted); font-size: 12.5px; margin: 0; max-width: 360px; }
+/* 요건 대조표 */
+section.law { margin-top: 64px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+section.law h2 { font-family: var(--font-display); font-size: 22px; margin: 0; text-wrap: balance; }
+section.law > p { margin: 0; color: var(--muted); max-width: 70ch; }
+.tablebox { overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; background: var(--screen); }
+table { border-collapse: collapse; width: 100%; min-width: 620px; font-size: 14px; }
+th, td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12px; color: var(--muted); font-weight: 700; letter-spacing: .03em; background: var(--ground); }
+tr:last-child td { border-bottom: 0; }
+td .yes { color: var(--ok); font-weight: 700; }
+td .todo { color: var(--warn); font-weight: 700; }
+@media (prefers-reduced-motion: no-preference) { .tabs button { transition: background .15s, color .15s; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="brand">계약하자 · HTML 목업</div>
+      <h1 id="title">표준근로계약서 작성부터 교부까지</h1>
+      <p class="lede">고용노동부 표준 서식 항목 그대로, 사업주가 빈칸을 채우고 근로자가 자기 정보를 넣은 뒤 전자서명하는 흐름입니다. 화면 속 이름과 금액은 모두 예시입니다.</p>
+    </div>
+    <div class="tabs" role="tablist" aria-label="계약서 종류">
+      <button id="tab-std" role="tab" aria-selected="true" data-kind="std">표준근로계약서</button>
+      <button id="tab-day" role="tab" aria-selected="false" data-kind="day">일용근로자</button>
+    </div>
+  </header>
+
+  <main class="flow" id="flow" aria-live="polite"></main>
+
+  <section class="law" aria-labelledby="law-h">
+    <h2 id="law-h">전자 근로계약서가 효력을 갖추려면</h2>
+    <p>근로기준법 제17조는 아래 항목을 서면으로 명시하고 근로자에게 교부하라고 정합니다. 전자문서도 서면으로 인정되므로(전자문서법 제4조의2) 앱에서 작성·서명·교부해도 됩니다. 각 요건이 앱에서 어떻게 채워지는지 정리했습니다.</p>
+    <div class="tablebox">
+      <table>
+        <thead><tr><th>법이 요구하는 것</th><th>계약서 항목</th><th>앱에서</th></tr></thead>
+        <tbody>
+          <tr><td>임금 (구성항목·계산방법·지급방법)</td><td>6. 임금</td><td><span class="yes">반영</span> 임금 형태·금액·상여금·제수당·지급일·지급방법 칸</td></tr>
+          <tr><td>소정근로시간</td><td>4. 소정근로시간</td><td><span class="yes">반영</span> 시작·종료·휴게 시각을 HH:MM 형식으로만 받음</td></tr>
+          <tr><td>주휴일 (제55조)</td><td>5. 근무일/휴일</td><td><span class="yes">반영</span> 일용직은 '해당 없음' 선택 가능</td></tr>
+          <tr><td>연차유급휴가 (제60조)</td><td>7. 연차유급휴가</td><td><span class="yes">반영</span> 법정 문구 고정</td></tr>
+          <tr><td>취업 장소와 종사 업무</td><td>2·3. 근무장소, 업무의 내용</td><td><span class="yes">반영</span></td></tr>
+          <tr><td>근로계약서 교부</td><td>9. 근로계약서 교부</td><td><span class="yes">반영</span> 서명 완료 즉시 근로자도 PDF를 내려받을 수 있음</td></tr>
+          <tr><td>본인 의사 확인·서명</td><td>서명란</td><td><span class="todo">출시 전 필요</span> 지금은 개발용 모의 서명. 토스인증 등 전자서명 사업자 연결 후 법적 효력 (PDF에 '시험용' 표시가 사라짐)</td></tr>
+          <tr><td>3년 보존 (제42조)</td><td>—</td><td><span class="yes">안내</span> 사업주가 PDF를 직접 보관하도록 서명 전·완료 화면에서 고지</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<script>
+(function () {
+  var SIG = '<svg viewBox="0 0 200 60" fill="none" aria-hidden="true"><path d="M8 42c14-22 24-30 30-24s-8 26 2 24 16-30 26-26-4 22 6 22 12-16 22-18 6 14 16 12 14-10 26-12 20 4 30 2" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  var KIND = {
+    std: {
+      name: "표준근로계약서", sub: "정규직 등 기간의 정함이 없는 근로자",
+      doc: "표준근로계약서 (기간의 정함이 없는 경우)",
+      title: "표준근로계약서 작성부터 교부까지",
+      boss: "박서준", biz: "한빛베이커리", worker: "김민지",
+      v: {
+        "사업체명": "한빛베이커리", "근로자 성명": "김민지", "근로개시일": "2026년 10월 12일", "근무장소": "서울 마포구 망원로 12, 한빛베이커리 망원점",
+        "업무의 내용": "제빵 보조 및 매장 관리", "근로 시작 시각": "09:00", "근로 종료 시각": "18:00", "휴게 시작 시각": "12:00", "휴게 종료 시각": "13:00",
+        "주 근무일수": "5", "주휴일": "일요일", "임금 형태": "월급", "임금액": "2,400,000", "상여금 여부": "없음", "상여금액": "", "기타급여": "식대 200,000원",
+        "임금지급일": "10일", "지급방법": "근로자 명의 예금통장에 입금", "사업체 전화": "02-333-1234", "사업체 주소": "서울 마포구 망원로 12", "대표자 성명": "박서준",
+        "근로자 주소": "서울 마포구 성산로 45", "근로자 연락처": "010-2345-6789"
+      },
+      body: '{사업체명}(이하 "사업주"라 함)과(와) {근로자 성명}(이하 "근로자"라 함)은 다음과 같이 근로계약을 체결한다.\n\n1. 근로개시일: {근로개시일}부터\n2. 근무장소: {근무장소}\n3. 업무의 내용: {업무의 내용}\n4. 소정근로시간: {근로 시작 시각}부터 {근로 종료 시각}까지 (휴게시간: {휴게 시작 시각} ~ {휴게 종료 시각})\n5. 근무일/휴일: 매주 {주 근무일수}일 근무, 주휴일 매주 {주휴일}\n6. 임금\n - 임금 형태 및 금액: {임금 형태} {임금액} 원\n - 상여금: {상여금 여부} {상여금액} 원\n - 기타급여(제수당 등): {기타급여}\n - 임금지급일: 매월(매주 또는 매일) {임금지급일} (휴일의 경우는 전일 지급)\n - 지급방법: {지급방법}\n7. 연차유급휴가\n - 연차유급휴가는 근로기준법에서 정하는 바에 따라 부여함\n8. 사회보험 적용여부\n ☑ 고용보험 ☑ 산재보험 ☑ 국민연금 ☑ 건강보험\n9. 근로계약서 교부\n - 사업주는 근로계약을 체결함과 동시에 본 계약서를 사본하여 근로자의 교부요구와 관계없이 근로자에게 교부함(근로기준법 제17조 이행). 본 계약서는 전자문서로 교부하며, 근로자는 언제든지 내려받아 출력할 수 있다.\n10. 근로계약, 취업규칙 등의 성실한 이행의무\n - 사업주와 근로자는 각자가 근로계약, 취업규칙, 단체협약을 지키고 성실하게 이행하여야 함\n11. 기타\n - 이 계약에 정함이 없는 사항은 근로기준법령에 의함\n\n(사업주) 사업체명: {사업체명} (전화: {사업체 전화})\n주소: {사업체 주소}\n대표자: {대표자 성명} [사업주 서명]\n\n(근로자) 주소: {근로자 주소}\n연락처: {근로자 연락처}\n성명: {근로자 성명} [근로자 서명]',
+      period: [["근로개시일", "2026-10-12", "날짜"]],
+      weekly: "일요일",
+      wageType: "월급", wage: "2,400,000",
+      summary: [["근무장소", "한빛베이커리 망원점"], ["근로개시일", "2026년 10월 12일부터"], ["근로시간", "09:00 ~ 18:00 (휴게 1시간)"], ["근무일", "주 5일 · 주휴일 일요일"], ["임금", "월급 2,400,000원 · 매월 10일"]]
+    },
+    day: {
+      name: "일용근로자 표준근로계약서", sub: "하루·단기로 일하는 근로자",
+      doc: "일용근로자 표준근로계약서",
+      title: "일용근로자 계약서 작성부터 교부까지",
+      boss: "최도윤", biz: "도윤건설", worker: "이준호",
+      v: {
+        "사업체명": "도윤건설", "근로자 성명": "이준호", "근로 시작일": "2026년 10월 12일", "근로 종료일": "2026년 10월 16일", "근무장소": "경기 고양시 덕양구 원흥동 신축현장",
+        "업무의 내용": "자재 운반 및 현장 정리", "근로 시작 시각": "08:00", "근로 종료 시각": "17:00", "휴게 시작 시각": "12:00", "휴게 종료 시각": "13:00",
+        "주 근무일수": "5", "주휴일": "해당 없음", "임금 형태": "일급", "임금액": "140,000", "상여금 여부": "없음", "상여금액": "", "제수당 내역": "연장근로 시 통상임금의 50% 가산",
+        "임금지급일": "근무 당일", "지급방법": "근로자 명의 예금통장에 입금", "사업체 전화": "031-900-5678", "사업체 주소": "경기 고양시 덕양구 화신로 88", "대표자 성명": "최도윤",
+        "근로자 주소": "경기 파주시 금정로 21", "근로자 연락처": "010-8765-4321"
+      },
+      body: '{사업체명}(이하 "사업주"라 함)과(와) {근로자 성명}(이하 "근로자"라 함)은 다음과 같이 근로계약을 체결한다.\n\n1. 근로계약기간: {근로 시작일}부터 {근로 종료일}까지\n2. 근무장소: {근무장소}\n3. 업무의 내용: {업무의 내용}\n4. 소정근로시간: {근로 시작 시각}부터 {근로 종료 시각}까지 (휴게시간: {휴게 시작 시각} ~ {휴게 종료 시각})\n5. 근무일/휴일: 매주 {주 근무일수}일(또는 매일단위) 근무, 주휴일 매주 {주휴일} (해당자에 한함)\n ※ 주휴일은 1주간 소정근로일을 모두 근로한 경우에 주당 1일을 유급으로 부여\n6. 임금\n - 임금 형태 및 금액: {임금 형태} {임금액} 원\n - 상여금: {상여금 여부} {상여금액} 원\n - 기타 제수당(시간외·야간·휴일근로수당 등): {제수당 내역}\n - 임금지급일: 매월(매주 또는 매일) {임금지급일} (휴일의 경우는 전일 지급)\n - 지급방법: {지급방법}\n7. 연차유급휴가\n - 연차유급휴가는 근로기준법에서 정하는 바에 따라 부여함\n8. 사회보험 적용여부\n ☑ 고용보험 ☑ 산재보험 ☐ 국민연금 ☐ 건강보험\n9. 근로계약서 교부\n - 사업주는 근로계약을 체결함과 동시에 본 계약서를 사본하여 근로자의 교부요구와 관계없이 근로자에게 교부함(근로기준법 제17조 이행). 본 계약서는 전자문서로 교부하며, 근로자는 언제든지 내려받아 출력할 수 있다.\n10. 근로계약, 취업규칙 등의 성실한 이행의무\n - 사업주와 근로자는 각자가 근로계약, 취업규칙, 단체협약을 지키고 성실하게 이행하여야 함\n11. 기타\n - 이 계약에 정함이 없는 사항은 근로기준법령에 의함\n\n(사업주) 사업체명: {사업체명} (전화: {사업체 전화})\n주소: {사업체 주소}\n대표자: {대표자 성명} [사업주 서명]\n\n(근로자) 주소: {근로자 주소}\n연락처: {근로자 연락처}\n성명: {근로자 성명} [근로자 서명]',
+      period: [["근로 시작일", "2026-10-12", "날짜"], ["근로 종료일", "2026-10-16", "날짜"]],
+      weekly: "해당 없음",
+      wageType: "일급", wage: "140,000",
+      summary: [["근무장소", "원흥동 신축현장"], ["근로기간", "10월 12일 ~ 10월 16일 (5일)"], ["근로시간", "08:00 ~ 17:00 (휴게 1시간)"], ["주휴일", "해당 없음"], ["임금", "일급 140,000원 · 근무 당일"]]
+    }
+  };
+
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function chrome(nav, inner, cta) {
+    return '<div class="phone"><div class="screen"><div class="status"><span>9:41</span><span>토스</span></div>' +
+      '<div class="nav"><span class="back" aria-hidden="true">‹</span>' + nav + '</div><div class="body">' + inner + '</div>' +
+      (cta ? '<div class="cta">' + cta + '</div>' : '') + '</div></div>';
+  }
+  function field(label, value, type, opt) {
+    opt = opt || {};
+    var cls = "in" + (opt.err ? " err" : "") + (opt.ro ? " ro" : "");
+    var val = value ? esc(value) : '<span class="ph">' + esc(opt.ph || "") + '</span>';
+    return '<div class="fld"><label>' + esc(label) + (opt.opt ? "" : '<span class="req">*</span>') + '<span class="t">' + type + '</span></label>' +
+      '<div class="' + cls + '"><span>' + val + '</span>' + (opt.sel ? '<span aria-hidden="true">⌄</span>' : '') + '</div>' +
+      (opt.err ? '<div class="errmsg">' + esc(opt.err) + '</div>' : '') + '</div>';
+  }
+  function step(n, t, s, html, cap) {
+    return '<div class="step"><div class="step-cap"><b>' + n + '</b><span>' + t + '<small>' + s + '</small></span></div>' + html + (cap ? '<p class="cap">' + cap + '</p>' : '') + '</div>';
+  }
+
+  function render(kind) {
+    var k = KIND[kind];
+    var list = [["차용증", "돈을 빌리고 빌려줄 때 · 금전소비대차계약서"], ["용역계약", "일을 맡기고 맡을 때 · 용역계약서"],
+      ["표준근로계약서", "정규직 등 기간의 정함이 없는 근로자"], ["일용근로자 표준근로계약서", "하루·단기로 일하는 근로자"], ["거래계약", "물건을 사고팔 때 · 물품매매계약서"]];
+    var notes = {
+      "표준근로계약서": "고용노동부 표준근로계약서 항목을 따랐어요. 계약서를 근로자에게 교부해야 하고, 사업주는 3년간 보존해야 해요.",
+      "일용근로자 표준근로계약서": "고용노동부 일용근로자 표준근로계약서 항목을 따랐어요. 시간외·야간·휴일근로수당은 법정 가산율 이상이어야 해요."
+    };
+    var cards = list.map(function (c) {
+      var isNew = notes[c[0]];
+      return '<div class="card' + (c[0] === k.name ? " on" : "") + '"><h4>' + c[0] + (isNew ? '<span class="new">고용노동부 서식</span>' : '') + '</h4><p>' + c[1] + '</p>' +
+        (isNew ? '<p class="note">' + notes[c[0]] + '</p>' : '') + '</div>';
+    }).join("");
+    var s1 = chrome("템플릿 선택", '<p class="q">어떤 계약인가요?</p>' + cards +
+      '<p class="fine">템플릿은 일반적인 예시일 뿐 법률 자문이 아니에요. 단시간·기간제 근로자는 별도 서식이 필요할 수 있어요.</p>');
+
+    var periodFields = k.period.map(function (p) { return field(p[0], p[1], p[2]); }).join("");
+    var s2 = chrome(esc(k.doc),
+      '<div class="chips"><span class="chip blue">작성 중</span><span class="chip">v1</span><span class="chip">사업주 입력 22칸</span></div>' +
+      '<div class="seg"><span class="on">입력</span><span>미리보기</span></div>' +
+      '<div class="group">근로 조건</div>' +
+      '<div class="row2">' + field("근로 시작 시각", "9시", "글자", { err: "시각을 24시간제 HH:MM 으로 입력해 주세요. (예: 09:00)" }) + field("근로 종료 시각", k.v["근로 종료 시각"], "글자") + '</div>' +
+      periodFields + field("근무장소", k.v["근무장소"], "글자") +
+      '<div class="row2">' + field("주 근무일수", k.v["주 근무일수"], "숫자") + field("주휴일", k.weekly, "선택", { sel: 1 }) + '</div>' +
+      '<div class="row2">' + field("임금 형태", k.wageType, "선택", { sel: 1 }) + field("임금액", k.wage, "숫자") + '</div>' +
+      '<div class="group">사업장</div>' + field("사업체명", k.v["사업체명"], "글자") + field("대표자 성명", k.v["대표자 성명"], "글자"),
+      '<div class="btn">근로자 초대하기</div>');
+
+    var sum = k.summary.map(function (r) { return '<dt>' + r[0] + '</dt><dd>' + esc(r[1]) + '</dd>'; }).join("");
+    var s3 = chrome("근로자 정보 입력",
+      '<p class="q">' + k.boss + ' 대표님이 보낸<br>근로계약서예요</p>' +
+      '<dl class="summary">' + sum + '</dl>' +
+      '<div class="group">근로자가 직접 입력해요</div>' +
+      field("근로자 성명", k.v["근로자 성명"], "글자") + field("근로자 주소", k.v["근로자 주소"], "글자") + field("근로자 연락처", k.v["근로자 연락처"], "전화번호") +
+      '<p class="fine">사업주가 적은 내용은 고칠 수 없어요. 다르면 서명하지 말고 사업주에게 수정을 요청하세요.</p>',
+      '<div class="btn">계약서 확인하고 서명하기</div>');
+
+    var body = esc(k.body).replace(/\{([^}]+)\}/g, function (_, name) {
+      var v = k.v[name];
+      return v ? '<span class="v">' + esc(v) + '</span>' : '<span class="v">&nbsp;&nbsp;&nbsp;</span>';
+    }).replace("[사업주 서명]", '<span class="sig" style="color:#191f28">' + SIG + '</span>')
+      .replace("[근로자 서명]", '<span class="sig">근로자 서명</span>');
+    var s4 = chrome(esc(k.doc),
+      '<div class="seg"><span>입력</span><span class="on">미리보기</span></div>' +
+      '<div class="paperwrap"><div class="paper"><div class="no">계약번호 K-20261010-3F9A</div><h2>' + esc(k.doc) + '</h2><p>' + body + '</p>' +
+      '<div class="foot"><span>계약번호 K-20261010-3F9A · 전자서명 문서</span><span>1 / 3 쪽</span></div></div></div>',
+      '<div class="btn">서명하기</div>');
+
+    var s5 = chrome("서명",
+      '<p class="q">서명 전에<br>확인해 주세요</p>' +
+      '<div class="checks">' +
+      '<div class="ck"><i>✓</i>계약 내용을 확인했습니다.</div>' +
+      '<div class="ck"><i>✓</i>본인의 의사로 계약합니다.</div>' +
+      '<div class="ck"><i>✓</i>전자서명으로 계약을 체결합니다.</div>' +
+      '<div class="ck"><i>✓</i>완성된 계약서 파일은 제가 직접 보관합니다. 서비스는 일정 기간이 지나면 원문을 삭제한다는 것을 알고 있습니다.</div>' +
+      '</div><div class="group">' + k.worker + '님 서명</div><div class="pad" style="color:var(--screen-ink)">' + SIG + '<small>지우기</small></div>' +
+      '<p class="fine">본인확인을 마친 뒤 서명해요. 서명은 이 계약서 버전(v1)의 디지털 지문과 함께 기록돼요.</p>',
+      '<div class="btn">서명하고 계약 완료</div>');
+
+    var s6 = chrome("계약 완료",
+      '<div class="done"><div class="mark" aria-hidden="true">✓</div><h3>근로계약서가 완성됐어요</h3><p>' + k.biz + ' · ' + k.worker + ' · 2026.10.10</p></div>' +
+      '<div class="states"><div><b>계약</b>완료</div><div><b>교부</b>근로자 수령 가능</div><div><b>지문 기록</b>선택</div></div>' +
+      '<div class="box alert"><strong>근로자에게 교부됐어요</strong>' + k.worker + '님도 같은 계약서를 지금 바로 내려받을 수 있어요. (근로기준법 제17조)</div>' +
+      '<div class="box"><strong>사업주는 3년간 보관해야 해요</strong>근로기준법 제42조에 따라 근로계약서를 3년간 보존해야 해요. 서비스는 7일 뒤 원문을 삭제하니 지금 PDF를 저장해 두세요.</div>' +
+      '<div class="box"><ul><li>분쟁이 생기면 계약서 PDF와 \'전자계약 체결 확인서\'를 함께 제출하는 것을 권장해요.</li><li>확인서는 계약의 유효성을 보증하거나 공증하지 않아요.</li></ul></div>',
+      '<div class="btn">계약서 PDF 저장</div><div class="btn sub">전자계약 체결 확인서 저장</div>');
+
+    document.getElementById("flow").innerHTML =
+      step("01", "템플릿 선택", "고용노동부 서식 2종이 추가됐어요", s1) +
+      step("02", "사업주 입력", "시각은 HH:MM 형식만 받아요", s2, "근로시간 칸에 '9시'처럼 적으면 저장할 때 바로 알려줍니다.") +
+      step("03", "근로자 입력", "초대 링크로 들어온 근로자 화면", s3) +
+      step("04", "계약서 미리보기", "PDF와 같은 서식 · 1~11항", s4, "개발 환경(모의 서명)에서는 PDF 모든 쪽에 '시험용 · 법적 효력 없음'이 표시됩니다.") +
+      step("05", "근로자 서명", "동의 4개 + 손글씨 서명", s5) +
+      step("06", "완료 · 교부", "양쪽 모두 PDF 저장", s6);
+    document.getElementById("title").textContent = k.title;
+  }
+
+  var tabs = document.querySelectorAll(".tabs button");
+  function pick(kind) {
+    tabs.forEach(function (b) { b.setAttribute("aria-selected", String(b.dataset.kind === kind)); });
+    render(kind);
+    try { localStorage.setItem("mockup-kind", kind); } catch (e) {}
+  }
+  tabs.forEach(function (b) { b.addEventListener("click", function () { pick(b.dataset.kind); }); });
+  var start = "std";
+  if (location.hash === "#day") start = "day";
+  else { try { var s = localStorage.getItem("mockup-kind"); if (s === "day" || s === "std") start = s; } catch (e) {} }
+  pick(start);
+})();
+</script>
+
+</html>

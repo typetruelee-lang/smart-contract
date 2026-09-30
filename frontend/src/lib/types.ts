@@ -129,4 +129,5 @@ export interface TemplateSummary {
   name: string;
   subtitle: string;
   title: string;
+  note?: string | null;
 }

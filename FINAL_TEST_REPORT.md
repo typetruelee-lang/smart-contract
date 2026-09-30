@@ -1,6 +1,6 @@
 # 최종 테스트 보고서
 
-- 실행: `make test` (`scripts/run_all_tests.sh`) — 2026-09-29 23:19 UTC, 개발 컨테이너
+- 실행: `make test` (`scripts/run_all_tests.sh`) — 2026-09-30 02:41 UTC, 개발 컨테이너
 - 근거 파일: `test-results/summary.json`
 - 실제로 실행한 결과만 적었습니다. 외부 계정이 필요한 운영 연동은 **테스트하지 않았고**, 해당 칸은 "Mock"으로 표시했습니다.
 
@@ -8,11 +8,11 @@
 
 | 구분 | PASS | FAIL |
 |---|---|---|
-| 백엔드 (pytest: 단위·통합·보안·EVM 스마트컨트랙트·증빙 문서) | 184 | 0 |
+| 백엔드 (pytest: 단위·통합·보안·EVM 스마트컨트랙트·증빙 문서) | 195 | 0 |
 | 프론트엔드 (vitest) | 20 | 0 |
-| E2E 기능 (Playwright, 모바일 iPhone 13 에뮬레이션) | 18 | 0 |
+| E2E 기능 (Playwright, 모바일 iPhone 13 에뮬레이션) | 19 | 0 |
 | E2E 화면 캡처 | 1 (22장) | 0 |
-| **합계** | **223** | **0** |
+| **합계** | **235** | **0** |
 
 추가로 확인한 것:
 
@@ -27,7 +27,9 @@
 
 | 기능 | 결과 | 근거 테스트 |
 |---|---|---|
-| Contract Creation (텍스트·붙여넣기·템플릿 4종) | PASS | `test_flow.py`, `test_contract_data_matrix.py`, E2E 시나리오 1·템플릿 |
+| Contract Creation (텍스트·붙여넣기·템플릿 5종) | PASS | `test_flow.py`, `test_contract_data_matrix.py`, E2E 시나리오 1·템플릿 |
+| 표준근로계약서 · 일용근로자 표준근로계약서 (고용노동부 서식 항목, 근로시간 HH:MM 검증, 템플릿 안내) | PASS | `test_contract_data_matrix.py`(2종 × 정상/빈/잘못/긴/한글/특수/숫자/날짜), `test_time_field_pattern`, E2E 일용근로자 |
+| 입력 형식 규칙 서버 허용목록 (임의 정규식·과도한 길이 제한 거부) | PASS | `test_client_validation_is_sanitized` |
 | PDF Upload (텍스트 PDF 추출 · 스캔 PDF OCR) | PASS | `test_pdf_upload.py`, E2E 시나리오 2·OCR |
 | Field Detection (자동 **추천** → 사용자 적용) | PASS | `test_units.py`(추천·적용·라벨·유형 추론), E2E |
 | Manual Field (PDF 위 드래그 추가·이동·설정) | PASS | E2E 시나리오 2 |
@@ -95,7 +97,7 @@
 
 ## E2E
 
-PASS — 18/18 (로컬) · 15/15 + 1 SKIP (Docker 스택)
+PASS — 19/19 (로컬) · 15/15 + 1 SKIP (Docker 스택)
 
 ## Security
 
@@ -126,6 +128,7 @@ PASS — 22장 OK (`FINAL_REVIEW/VISUAL_REVIEW.md`)
 | 로그인 후 이동 주소 오픈 리다이렉트 가능성 | `safeRedirect` + 단위/E2E 테스트 |
 | React Router v7 전환 후 세션 만료 안내 누락 | 인증 컨텍스트에 만료 상태 저장 + 4회 반복 테스트 |
 | 관리자 화면이 개발용 서명·로컬 체인을 "운영"으로 표시 | 개발용 판정 수정 + 테스트 |
+| 빈칸 입력 형식(정규식)을 클라이언트 값 그대로 사용 → ReDoS 가능성 | 서버가 아는 형식(전화·이메일·시각)만 허용, 길이 제한 상한 고정 + 테스트 |
 | 스캔 PDF OCR이 밑줄을 인식하지 못함 | "라벨:" 빈칸·"년 월 일" 추천 규칙 추가 |
 | 드래그가 하단 고정 버튼 위에서 끝나 빈칸 대신 저장이 눌림 | 테스트 좌표 수정 (UX는 스크롤로 해결) |
 

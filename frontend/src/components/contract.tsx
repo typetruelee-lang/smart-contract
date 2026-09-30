@@ -101,8 +101,14 @@ export function FieldInput({ f, value, onChange, disabled, error }: { f: Field; 
           <div className="rounded-xl border border-dashed border-grey-300 px-4 py-3 text-[14px] text-grey-500">{value ? "✍️ 서명 완료" : "서명 단계에서 자동으로 채워져요"}</div>
         </div>
       );
-    default:
-      input = <input id={id} data-testid={`input-${f.label}`} className={cls} value={s} disabled={disabled} maxLength={200} onChange={(e) => onChange(e.target.value)} />;
+    default: {
+      // 형식이 정해진 글자 칸(현재는 근로시간 HH:MM)만 서버가 pattern 을 붙여 보낸다
+      const timeLike = typeof f.validation?.pattern === "string";
+      input = (
+        <input id={id} data-testid={`input-${f.label}`} className={cls} value={s} disabled={disabled} maxLength={timeLike ? 5 : 200}
+          placeholder={timeLike ? "예: 09:00 (24시간제)" : undefined} onChange={(e) => onChange(e.target.value)} />
+      );
+    }
   }
   const interestWarning = f.type === "NUMBER" && /이자|이율/.test(f.label) && Number(String(value ?? "").replace(/,/g, "")) > 20;
   return (

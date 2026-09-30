@@ -22,6 +22,17 @@ MAX_LABEL = 40
 MAX_VALUE = {"LONG_TEXT": 2000, "TEXT": 200}
 LABEL_RE = re.compile(r"^[^{}<>\n\r]{1,40}$")
 
+# 입력 형식(정규식)은 클라이언트가 보낸 값을 그대로 쓰지 않고, 서버가 아는 형식만 허용한다
+# (임의 정규식은 ReDoS 위험). 안내 문구도 서버가 정한다.
+PHONE_PATTERN = r"^0\d{1,2}-?\d{3,4}-?\d{4}$"
+EMAIL_PATTERN = r"^[^@\s]+@[^@\s]+\.[^@\s]+$"
+TIME_PATTERN = r"^([01]\d|2[0-3]):[0-5]\d$"
+PATTERN_HINTS = {
+    PHONE_PATTERN: "전화번호 형식이 올바르지 않아요. (예: 010-1234-5678)",
+    EMAIL_PATTERN: "이메일 형식이 올바르지 않아요.",
+    TIME_PATTERN: "시각을 24시간제 HH:MM 으로 입력해 주세요. (예: 09:00)",
+}
+
 
 class Position(BaseModel):
     """PDF 위 위치. 페이지 크기 대비 비율(0~1)로 저장해 해상도와 무관하게 동작."""
@@ -58,6 +69,21 @@ class FieldSpec(BaseModel):
         if len(v) > 20:
             raise ValueError("선택지는 20개까지 가능해요.")
         return [o.strip()[:50] for o in v if o.strip()]
+
+    @field_validator("validation")
+    @classmethod
+    def _validation(cls, v: dict[str, Any]) -> dict[str, Any]:
+        out: dict[str, Any] = {}
+        if v.get("pattern") in PATTERN_HINTS:
+            out["pattern"] = v["pattern"]
+            out["hint"] = PATTERN_HINTS[v["pattern"]]
+        for k in ("maxLength", "min", "max"):
+            x = v.get(k)
+            if isinstance(x, (int, float)) and not isinstance(x, bool) and x >= 0:
+                out[k] = int(x) if k == "maxLength" else x
+        if "maxLength" in out:
+            out["maxLength"] = max(1, min(out["maxLength"], max(MAX_VALUE.values())))
+        return out
 
 
 class Suggestion(BaseModel):
@@ -101,8 +127,8 @@ def infer_type(label: str, trailing: str = "") -> FieldType:
 def default_validation(t: str) -> dict[str, Any]:
     return {
         "NUMBER": {"min": 0, "max": 1_000_000_000_000},
-        "PHONE": {"pattern": r"^0\d{1,2}-?\d{3,4}-?\d{4}$"},
-        "EMAIL": {"pattern": r"^[^@\s]+@[^@\s]+\.[^@\s]+$"},
+        "PHONE": {"pattern": PHONE_PATTERN},
+        "EMAIL": {"pattern": EMAIL_PATTERN},
         "TEXT": {"maxLength": 200},
         "LONG_TEXT": {"maxLength": 2000},
     }.get(t, {})
@@ -311,10 +337,13 @@ def normalize_value(f: FieldSpec, value: Any) -> Any:
         if not isinstance(value, str):
             raise err("글자로 입력해 주세요.")
         value = value.replace("\r\n", "\n").strip()
-        if len(value) > int(v.get("maxLength", MAX_VALUE[t])):
-            raise err(f"{v.get('maxLength', MAX_VALUE[t])}자 이하로 입력해 주세요.")
+        limit = min(int(v.get("maxLength", MAX_VALUE[t])), MAX_VALUE[t])
+        if len(value) > limit:
+            raise err(f"{limit}자 이하로 입력해 주세요.")
         if t == "TEXT" and "\n" in value:
             raise err("한 줄로 입력해 주세요.")
+        if v.get("pattern") and not re.fullmatch(v["pattern"], value):
+            raise err(v.get("hint", "형식이 올바르지 않아요."))
         return value
     if t == "NUMBER":
         s = str(value).replace(",", "").strip()
@@ -336,12 +365,12 @@ def normalize_value(f: FieldSpec, value: Any) -> Any:
         return d.isoformat()
     if t == "PHONE":
         s = str(value).strip()
-        if not re.fullmatch(v.get("pattern", r"^0\d{1,2}-?\d{3,4}-?\d{4}$"), s):
+        if not re.fullmatch(v.get("pattern", PHONE_PATTERN), s):
             raise err("전화번호 형식이 올바르지 않아요. (예: 010-1234-5678)")
         return s
     if t == "EMAIL":
         s = str(value).strip()
-        if len(s) > 254 or not re.fullmatch(v.get("pattern", r"^[^@\s]+@[^@\s]+\.[^@\s]+$"), s):
+        if len(s) > 254 or not re.fullmatch(v.get("pattern", EMAIL_PATTERN), s):
             raise err("이메일 형식이 올바르지 않아요.")
         return s
     if t == "SELECT":

@@ -52,6 +52,11 @@ export default function TemplatePick() {
           <Card key={t.id} testid={`template-${t.id}`} onClick={() => pick(t.id)}>
             <p className="text-[17px] font-semibold">{t.name}</p>
             <p className="mt-0.5 text-[14px] text-grey-600">{t.subtitle} · {t.title}</p>
+            {t.note && (
+              <p data-testid={`template-note-${t.id}`} className="mt-2 text-[13px] leading-5 text-grey-500">
+                {t.note}
+              </p>
+            )}
           </Card>
         ))}
       </div>

@@ -306,3 +306,34 @@ def test_mask_name():
     assert mask_name("남궁민수") == "남**수"
     assert mask_name("김철") == "김*"
     assert mask_name("") == "*"
+
+
+def test_time_field_pattern():
+    from app.services.fields import TIME_PATTERN
+    f = F("TEXT", validation={"pattern": TIME_PATTERN, "maxLength": 5})
+    assert normalize_value(f, " 09:00 ") == "09:00"
+    assert normalize_value(f, "23:59") == "23:59"
+    for bad in ("25:00", "9시", "9:00", "12:60"):
+        with pytest.raises(FieldValueError) as e:
+            normalize_value(f, bad)
+        assert "HH:MM" in e.value.message
+
+
+def test_client_validation_is_sanitized():
+    """클라이언트가 보낸 임의 정규식(ReDoS 위험)·과도한 길이 제한은 버린다."""
+    f = F("TEXT", validation={"pattern": r"^(a+)+$", "hint": "<b>x</b>", "maxLength": 10**9, "evil": 1})
+    assert f.validation == {"maxLength": 2000}
+    assert normalize_value(f, "a" * 30 + "!") == "a" * 30 + "!"
+    with pytest.raises(FieldValueError):
+        normalize_value(f, "a" * 201)
+
+
+def test_templates_include_employment_forms_with_notes():
+    from app.services import catalog
+    ids = {t["id"]: t for t in catalog.list_templates()}
+    assert {"employment", "employment_daily"} <= ids.keys()
+    assert "근로기준법" in ids["employment"]["note"] and "일용" in ids["employment_daily"]["name"]
+    for tid in ("employment", "employment_daily"):
+        t = catalog.get_template(tid)
+        FieldSpec.model_validate(t["fields"][0])
+        assert any(f["type"] == "SIGNATURE" and f["assignee"] == "B" for f in t["fields"])
