@@ -25,7 +25,7 @@ def create_app() -> FastAPI:
         raise RuntimeError("JWT_SECRET 이 없습니다. ./start.sh 를 실행하면 .env.local 이 자동 생성됩니다.")
     if s.is_production and (bad := s.production_violations()):
         raise RuntimeError("운영 설정 오류로 서버를 시작하지 않습니다:\n - " + "\n - ".join(bad))
-    app = FastAPI(title="계약하자 API", version="1.0.0", docs_url=None if s.is_production else "/api/docs",
+    app = FastAPI(title="굳건 API", version="1.0.0", docs_url=None if s.is_production else "/api/docs",
                   openapi_url=None if s.is_production else "/api/openapi.json", redoc_url=None)
     app.add_middleware(CORSMiddleware, allow_origins=s.cors_origins, allow_credentials=True,
                        allow_methods=["GET", "POST", "PUT", "DELETE"], allow_headers=["Content-Type", "X-CSRF-Token", "Authorization", "X-Auth-Mode", "X-Admin-Token"])

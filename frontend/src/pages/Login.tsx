@@ -5,6 +5,7 @@ import { ApiError, api } from "../lib/api";
 import { useAuth } from "../lib/auth";
 import { safeRedirect } from "../lib/format";
 import { getBridge } from "../lib/tossBridge";
+import { BRAND } from "../lib/brand";
 
 const TEST_USERS = [
   { id: "hong", name: "홍길동" },
@@ -48,6 +49,9 @@ export default function Login() {
             로그인이 만료되었어요. 다시 로그인해 주세요.
           </div>
         )}
+        <p data-testid="brand" className="text-[15px] font-semibold text-toss-blue">
+          {BRAND.name} <span className="font-medium text-grey-400">{BRAND.english}</span> · <span className="font-medium text-grey-600">{BRAND.slogan}</span>
+        </p>
         <h1 className="text-[26px] leading-9 font-bold">
           토스로 로그인하고
           <br />

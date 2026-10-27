@@ -1,7 +1,7 @@
-# 계약하자 — 로컬 전체 실행 (개발용)
+# 굳건 — 로컬 전체 실행 (개발용)
 #   docker compose up --build   →  http://localhost:5173
 # 외부 서비스는 모두 Mock (토스 로그인/결제/본인확인/전자서명), 블록체인은 로컬 Hardhat 체인에 실제 트랜잭션을 기록한다.
-name: kyeyakhaja
+name: goodgun
 
 x-backend-env: &backend-env
   APP_ENV: development

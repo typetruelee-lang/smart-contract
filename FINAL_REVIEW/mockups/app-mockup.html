@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>계약하자 앱 목업</title>
+<title>굳건 앱 목업</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap">
@@ -227,7 +227,7 @@ textarea.in { min-height: 86px; resize: none; }
 <div class="wrap">
   <header class="top">
     <div>
-      <div class="brand">계약하자 · 앱 목업</div>
+      <div class="brand">굳건 · 앱 목업</div>
       <h1>계약서는 내가 보관하고, 지문은 검증할 수 있게</h1>
       <p class="lede">휴대폰 화면 안의 버튼을 눌러 실제 앱처럼 둘러보세요. 입력칸에 글을 쓰고 서명패드에 서명할 수도 있습니다. 이름·금액은 모두 예시입니다.</p>
     </div>
@@ -371,15 +371,16 @@ textarea.in { min-height: 86px; resize: none; }
     { id: "login", group: "시작", name: "로그인", info: ["토스 앱 안에서 열리므로 토스 계정으로 바로 시작합니다.", ["토스 로그인 한 번이면 끝", "서비스 역할 안내(운영사는 계약 당사자가 아님)", "이용약관·개인정보처리방침 링크"]],
       html: function () {
         return head("", { noBack: true }) + '<div class="bd" style="display:flex;flex-direction:column;justify-content:center">' +
-          '<div style="font-size:56px">🤝</div><p class="t1" style="font-size:28px">계약하자</p><p class="sub">계약서는 내가 보관하고,<br>계약의 디지털 지문은 검증할 수 있게.</p>' +
-          '<div class="infob" style="margin-top:40px">계약하자는 계약서 작성·전자서명 도구예요. 운영사는 이용자 간 계약의 당사자가 아니에요.</div></div>' +
+          '<div style="font-size:56px">🪨</div><p class="t1" style="font-size:28px">굳건 <span style="font-size:16px;color:var(--app-muted);font-weight:500">GoodGun</span></p><p class="sub" style="font-weight:600;color:var(--app-blue)">흔들리지 않는 약속</p><p class="sub" style="margin-top:10px">계약서는 내가 보관하고,<br>계약의 디지털 지문은 검증할 수 있게.</p>' +
+          '<div class="infob" style="margin-top:18px"><strong>굳건이라는 이름</strong>\'굳건하다\'에서 온 이름이에요. 어떤 외풍이나 분쟁에도 흔들리지 않고, 바위처럼 든든하게 약속을 지탱한다는 뜻을 담았어요.</div>' +
+          '<div class="infob" style="margin-top:40px">굳건은 계약서 작성·전자서명 도구예요. 운영사는 이용자 간 계약의 당사자가 아니에요.</div></div>' +
           '<div class="ft"><button class="btn" data-go="home">토스로 로그인</button><p class="fine center" style="margin:4px 0 0">로그인하면 <u>이용약관</u>과 <u>개인정보처리방침</u>에 동의하게 돼요.</p></div>';
       } },
     { id: "home", group: "시작", name: "홈", info: ["첫 화면입니다. 할 일, 자주 쓰는 계약, 내 계약, 검증까지 한눈에 보여줍니다.", ["서명을 기다리는 계약 알림", "일상 계약 3종 + 근로계약서 묶음 바로가기", "최근 계약 3건과 상태 배지"]],
       html: function () {
         var q = [["loan", "차용증", "돈을 빌려줄 때"], ["service", "용역계약", "일을 맡길 때"], ["goods", "거래계약", "물건을 사고팔 때"], ["employment", "근로계약서", "정규직·일용직·단시간"]];
         return head("", { noBack: true, right: "홍길동님" }) + '<div class="bd">' +
-          '<p style="color:var(--app-blue);font-weight:700;margin:4px 0 0">계약하자</p><p class="t1" style="font-size:27px">계약서를 만들고<br>간편하게 서명하세요.</p>' +
+          '<p style="color:var(--app-blue);font-weight:700;margin:4px 0 0">굳건</p><p class="t1" style="font-size:27px">계약서를 만들고<br>간편하게 서명하세요.</p>' +
           '<p class="sub">계약서는 내가 보관하고, 계약의 디지털 지문은 누구나 검증할 수 있어요.</p>' +
           '<div style="margin-top:22px"><button class="btn" data-go="create">+ 계약 만들기</button></div>' +
           '<div class="alertc tap" style="margin-top:12px" data-go="accept"><b>내 서명을 기다리는 계약이 있어요 (1건)</b><span class="sub" style="font-size:14px">박서준님의 용역계약서 →</span></div>' +
@@ -390,14 +391,14 @@ textarea.in { min-height: 86px; resize: none; }
           '<div class="cardg tap lrow" data-go="done"><div class="tx"><b>금전소비대차계약서</b><small>김철수님과</small></div><span class="badge green">계약 완료</span></div>' +
           '<div class="cardg tap lrow" data-go="edit"><div class="tx"><b>물품거래계약서</b><small>상대방 초대 전</small></div><span class="badge">작성 중</span></div>' +
           '<div class="t2">계약 검증</div><div class="cardg tap lrow" data-go="verify"><span style="font-size:26px">🔍</span><div class="tx"><b>계약서가 바뀌지 않았는지 확인</b><small>PDF를 올리거나 검증번호를 입력하세요</small></div>' + CHEV + '</div>' +
-          '<p class="fine" style="margin-top:28px;border-top:1px solid var(--app-line);padding-top:14px"><u>이용약관</u> · <b><u>개인정보처리방침</u></b><br>계약하자는 계약서 작성·전자서명 도구이며, 운영사는 이용자 간 계약의 당사자가 아닙니다.</p></div>';
+          '<p class="fine" style="margin-top:28px;border-top:1px solid var(--app-line);padding-top:14px"><u>이용약관</u> · <b><u>개인정보처리방침</u></b><br>굳건은 계약서 작성·전자서명 도구이며, 운영사는 이용자 간 계약의 당사자가 아닙니다.</p></div>';
       } },
     { id: "create", group: "계약 만들기", name: "만들기 메뉴", info: ["계약서를 시작하는 네 가지 방법입니다.", ["빈 화면에서 새로 쓰기", "가지고 있는 PDF에 빈칸 만들기", "복사한 계약서 붙여넣기", "템플릿 6종"]],
       html: function () {
         var it = [["✍️", "새 계약서 작성", "빈 화면에서 직접 써요", "write"], ["📄", "내 PDF 불러오기", "가지고 있는 계약서 PDF에 빈칸을 만들어요", "pdf"], ["📋", "텍스트 붙여넣기", "복사한 계약서 내용을 붙여넣어요", "write"], ["🗂️", "템플릿 선택", "차용증·용역·거래 · 근로계약서 3종", "templates"]];
         return head("계약 만들기") + '<div class="bd"><p class="t1">어떻게 시작할까요?</p><div style="margin-top:18px">' +
           it.map(function (x) { return '<div class="cardg tap lrow" data-go="' + x[3] + '"><span style="font-size:30px">' + x[0] + '</span><div class="tx"><b>' + x[1] + '</b><small>' + x[2] + '</small></div>' + CHEV + '</div>'; }).join("") +
-          '</div><div class="infob" style="margin-top:22px">계약 내용과 효력은 당사자가 직접 확인하고 책임져요. 계약하자는 작성·서명 도구예요.</div></div>';
+          '</div><div class="infob" style="margin-top:22px">계약 내용과 효력은 당사자가 직접 확인하고 책임져요. 굳건은 작성·서명 도구예요.</div></div>';
       } },
     { id: "templates", group: "계약 만들기", name: "템플릿 선택", info: ["일상 계약은 크게, 근로계약서는 따로 묶었습니다.", ["자주 쓰는 계약: 차용증·용역·거래", "근로계약서: 고용노동부 표준 서식 3종", "법적 안내는 '작성 전 확인할 점'에 접어 둠"]],
       html: function () {
@@ -558,8 +559,8 @@ textarea.in { min-height: 86px; resize: none; }
       } },
     { id: "terms", group: "기타", name: "약관 · 개인정보", info: ["이용약관·개인정보처리방침 초안입니다. 법률 검토 후 확정본으로 교체합니다.", ["'초안' 표시", "운영사는 계약 당사자가 아님을 명시"]],
       html: function () {
-        return head("이용약관") + '<div class="bd"><span class="badge orange">초안 · 법률 검토 전</span><p class="t1" style="font-size:20px">계약하자 이용약관</p>' +
-          '<p class="sub" style="font-size:14px"><b>제1조 (목적)</b><br>이 약관은 계약서 작성·전자서명 도구인 계약하자의 이용 조건을 정합니다.</p>' +
+        return head("이용약관") + '<div class="bd"><span class="badge orange">초안 · 법률 검토 전</span><p class="t1" style="font-size:20px">굳건 이용약관</p>' +
+          '<p class="sub" style="font-size:14px"><b>제1조 (목적)</b><br>이 약관은 계약서 작성·전자서명 도구인 굳건의 이용 조건을 정합니다.</p>' +
           '<p class="sub" style="font-size:14px;margin-top:12px"><b>제2조 (서비스의 성격)</b><br>회사는 이용자 간 계약의 당사자가 아니며, 계약의 내용·효력·이행에 관여하지 않습니다.</p>' +
           '<p class="sub" style="font-size:14px;margin-top:12px"><b>제3조 (원본 보관)</b><br>완성된 계약서 원문은 정해진 기간이 지나면 삭제되며, 이용자는 파일을 직접 보관해야 합니다.</p></div>';
       } },

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 계약하자 — 한 번에 실행하기
+# 굳건 — 한 번에 실행하기
 #
 #   ./start.sh          Docker 로 전체 실행 (권장)  → http://localhost:5173
 #   ./start.sh local    Docker 없이 이 컴퓨터에서 직접 실행 (PostgreSQL·Redis·Python3.11·Node22 필요)

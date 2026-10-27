@@ -3,7 +3,7 @@
 import { defineConfig } from "@apps-in-toss/web-framework/config";
 
 export default defineConfig({
-  appName: "kyeyakhaja",
+  appName: "goodgun",
   brand: { primaryColor: "#3182F6" },
   permissions: [{ name: "clipboard", access: "write" }],
   navigationBar: { withBackButton: true, withHomeButton: true, withTitle: true, theme: "light" },

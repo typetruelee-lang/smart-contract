@@ -7,7 +7,7 @@ export function ServiceRoleNotice() {
     <div data-testid="service-role-notice" className="mt-6 rounded-2xl bg-grey-50 p-4 text-[13px] leading-5 text-grey-600">
       <p className="mb-1 font-semibold text-grey-700">시작하기 전에 알아 두세요</p>
       <ul className="list-disc space-y-1 pl-4">
-        <li>계약하자는 계약서 작성·서명·보관을 돕는 도구예요. 운영사는 계약의 당사자가 아니며, 계약 내용의 적법성·유효성·이행을 보증하지 않아요.</li>
+        <li>굳건은 계약서 작성·서명·보관을 돕는 도구예요. 운영사는 계약의 당사자가 아니며, 계약 내용의 적법성·유효성·이행을 보증하지 않아요.</li>
         <li>부동산 등기, 공증이 필요한 계약, 유언처럼 법이 정한 방식이 따로 있는 계약은 전자계약만으로 효력이 인정되지 않을 수 있어요.</li>
         <li>계약 내용이 법에 어긋나면(예: 법정 최고이자율 초과) 그 부분은 효력이 없을 수 있어요. 중요한 계약은 전문가와 상의해 주세요.</li>
       </ul>
@@ -35,7 +35,7 @@ export function LegalFooter() {
         <Link className="underline" to="/terms">이용약관</Link>
         <Link className="underline font-semibold" to="/privacy">개인정보처리방침</Link>
       </div>
-      <p className="mt-2">계약하자는 계약서 작성·전자서명 도구이며, 운영사는 이용자 간 계약의 당사자가 아닙니다.</p>
+      <p className="mt-2">굳건은 계약서 작성·전자서명 도구이며, 운영사는 이용자 간 계약의 당사자가 아닙니다.</p>
     </footer>
   );
 }

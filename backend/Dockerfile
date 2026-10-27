@@ -1,4 +1,4 @@
-# 계약하자 API / 워커 이미지
+# 굳건 API / 워커 이미지
 # Playwright 공식 이미지(Chromium 포함) 위에 한글 폰트 + Tesseract(한국어) 를 설치한다.
 FROM mcr.microsoft.com/playwright/python:v1.56.0-noble
 

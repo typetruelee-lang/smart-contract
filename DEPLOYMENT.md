@@ -18,8 +18,8 @@
 ## 1. 이미지 빌드
 
 ```bash
-docker build -f backend/Dockerfile -t <registry>/kyeyakhaja-backend:<tag> .
-docker build -f frontend/Dockerfile -t <registry>/kyeyakhaja-web:<tag> .
+docker build -f backend/Dockerfile -t <registry>/goodgun-backend:<tag> .
+docker build -f frontend/Dockerfile -t <registry>/goodgun-web:<tag> .
 ```
 
 - 같은 backend 이미지를 두 가지로 실행합니다. 명령 `api`는 마이그레이션 후 API 서버를 띄우고, 명령 `worker`는 블록체인 재시도와 보존정책 삭제를 담당합니다.

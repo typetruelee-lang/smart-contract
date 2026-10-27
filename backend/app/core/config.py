@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     )
 
     APP_ENV: Literal["development", "test", "production"] = "development"
-    APP_NAME: str = "계약하자"
+    APP_NAME: str = "굳건"
     PUBLIC_BASE_URL: str = "http://localhost:5173"
     CORS_ORIGINS: str = "http://localhost:5173"
 

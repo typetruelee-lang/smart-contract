@@ -5,6 +5,7 @@ import { api } from "../lib/api";
 import { useAuth } from "../lib/auth";
 import { STATUS_LABEL } from "../lib/format";
 import { lookOf } from "../lib/templates";
+import { BRAND } from "../lib/brand";
 import { LegalFooter } from "../components/legal";
 import type { ContractSummary } from "../lib/types";
 
@@ -31,7 +32,7 @@ export default function Home() {
   return (
     <Page back={false} title="" right={user ? <button data-testid="home-account" onClick={() => nav("/account")} className="mr-2 rounded-xl px-2 py-1 text-[14px] text-grey-600 active:bg-grey-100">{user.name}님 ›</button> : null}>
       <div className="mt-4">
-        <p className="text-[15px] font-semibold text-toss-blue">계약하자</p>
+        <p className="text-[15px] font-semibold text-toss-blue">{BRAND.name} <span className="font-medium text-grey-400">{BRAND.english}</span></p>
         <h1 className="mt-2 text-[28px] leading-[38px] font-bold">
           계약서를 만들고
           <br />
@@ -105,6 +106,13 @@ export default function Home() {
           </div>
         </Card>
       </Section>
+      <section data-testid="brand-story" className="mt-10 flex gap-3 rounded-3xl bg-grey-50 p-5">
+        <span aria-hidden="true" className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-white text-[22px]">🪨</span>
+        <div>
+          <p className="text-[15px] font-semibold">{BRAND.name}이라는 이름 · {BRAND.slogan}</p>
+          <p className="mt-1 text-[14px] leading-6 text-grey-600">{BRAND.story}</p>
+        </div>
+      </section>
       <LegalFooter />
     </Page>
   );

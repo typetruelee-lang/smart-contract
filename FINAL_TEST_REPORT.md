@@ -51,7 +51,7 @@
 | Payment Mock (성공·실패·취소·멱등성) | PASS | 시나리오 7, `test_idempotent_*` |
 | Toss Mock (로그인 · Bearer 토큰 모드 · provider 전환) | PASS | `test_providers.py`, `test_bearer_token_mode_for_apps_in_toss` |
 | Retention (종류별 보존·삭제 후 검증 유지) | PASS | `test_retention_*`, `test_draft_expires_after_draft_ttl` |
-| 앱인토스 `.ait` 번들 빌드 | PASS | `kyeyakhaja.ait` 생성 |
+| 앱인토스 `.ait` 번들 빌드 | PASS | `goodgun.ait` 생성 |
 | 제출용 증빙 PDF (발급번호·쪽번호·진행 기록·검증 방법·유의사항) | PASS | `test_legal_documents.py` |
 | 확인서 자체 진위 확인 (발급 대장 대조) | PASS | `test_certificate_itself_can_be_verified`, E2E 법적 고지 |
 | 시험용 워터마크 (모의 서명 시) / 운영 서명 시 미표시 | PASS | `test_contract_pdf_has_footer_notice_and_test_watermark`, `test_production_grade_signatures_have_no_test_watermark` |

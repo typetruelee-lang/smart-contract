@@ -1,4 +1,4 @@
-# 계약하자 웹 (web 런타임) — 빌드 후 nginx 로 정적 파일 서빙 + /api 프록시
+# 굳건 웹 (web 런타임) — 빌드 후 nginx 로 정적 파일 서빙 + /api 프록시
 FROM node:22-alpine AS build
 WORKDIR /web
 COPY frontend/package.json frontend/package-lock.json ./

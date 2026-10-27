@@ -35,7 +35,7 @@ from app.providers.base import ProviderError, ProviderNotConfigured
 from app.providers.blockchain import BlockchainProvider, OnchainRecord, TxInfo, TxReceipt
 from app.services.hashing import normalize_hash
 
-ACCEPT = {"Accept": "application/vnd.opentimestamps.v1", "User-Agent": "kyeyakhaja-ots/1.0"}
+ACCEPT = {"Accept": "application/vnd.opentimestamps.v1", "User-Agent": "goodgun-ots/1.0"}
 MAX_PROOF_BYTES = 64 * 1024
 
 

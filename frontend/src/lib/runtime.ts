@@ -5,7 +5,7 @@
 export const RUNTIME: "web" | "toss" = import.meta.env.VITE_RUNTIME === "toss" ? "toss" : "web";
 export const IS_TOSS = RUNTIME === "toss";
 export const API_BASE = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, "") ?? "";
-export const APP_NAME = (import.meta.env.VITE_AIT_APP_NAME as string | undefined) ?? "kyeyakhaja";
+export const APP_NAME = (import.meta.env.VITE_AIT_APP_NAME as string | undefined) ?? "goodgun";
 
 let accessToken: string | null = null;
 export const tokenStore = {

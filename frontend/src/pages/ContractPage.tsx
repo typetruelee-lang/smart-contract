@@ -92,7 +92,7 @@ export default function ContractPage() {
 
   async function share() {
     if (!invite) return;
-    const r = await getBridge().share(`[계약하자] ${c!.title} 계약에 참여해 주세요`, invite.url);
+    const r = await getBridge().share(`[굳건] ${c!.title} 계약에 참여해 주세요`, invite.url);
     toast(r === "copied" ? "초대 링크를 복사했어요. 상대방에게 보내 주세요." : "공유했어요.");
   }
 

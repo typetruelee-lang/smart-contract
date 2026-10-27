@@ -6,7 +6,7 @@
 |---|---|---|
 | 앱인토스 SDK 연동 (`@apps-in-toss/web-framework` 3.6.0) | ✅ | `frontend/src/lib/tossBridge.ts` — TossAuth.login, IAP, Share, File.saveBase64 |
 | 앱인토스 설정 파일 | ✅ | `frontend/apps-in-toss.config.ts` (appName, 브랜드 색 #3182F6, 내비게이션 바, 클립보드 권한) |
-| `.ait` 번들 빌드 | ✅ | `make ait` → `frontend/kyeyakhaja.ait` (개발 컨테이너에서 빌드 성공 확인) |
+| `.ait` 번들 빌드 | ✅ | `make ait` → `frontend/goodgun.ait` (개발 컨테이너에서 빌드 성공 확인) |
 | 토스 런타임 인증(Bearer 토큰, 교차 도메인) | ✅ | `VITE_RUNTIME=toss`, 백엔드 `X-Auth-Mode: token` |
 | 뒤로가기 동작 | ✅ | 모든 화면 상단 뒤로가기 + 브라우저 뒤로가기 E2E 통과 |
 | 테스트용 키·Mock 잔존 금지 | ✅ | 운영에서 mock 로그인·장애 주입 API 404, mock provider 사용 시 오류 |
@@ -30,7 +30,7 @@
 
 ```bash
 cp frontend/.env.toss.example frontend/.env.toss   # 운영 API 주소 입력
-make ait                                           # → frontend/kyeyakhaja.ait
+make ait                                           # → frontend/goodgun.ait
 cd frontend && npx ait deploy --api-key <콘솔에서 발급한 키>
 ```
 
