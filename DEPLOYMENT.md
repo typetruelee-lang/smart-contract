@@ -76,4 +76,4 @@ BLOCKCHAIN_CONFIRMATIONS=2
 - **모니터링 항목:** 5xx 비율, `anchor_jobs` 상태별 개수(`/admin`), 운영 지갑 잔액, 워커 로그의 `worker tick failed`.
 - **키 교체:** 새 KEK를 `v2`로 등록 → `DATA_ENCRYPTION_KEY_VERSION=v2`. 기존 문서는 저장된 `key_version`으로 계속 복호화됩니다. 원문 보관 기간이 짧아서 재암호화 작업은 대부분 필요하지 않습니다.
 - **Merkle 모드 전환:** 계약량이 많아 가스비가 부담되면 `ANCHOR_MODE=merkle`로 바꿉니다. 워커가 대기 중인 Hash를 모아 Root 1건으로 기록합니다. 구현과 테스트는 완료되어 있습니다.
-- **OpenTimestamps**를 고르면 `providers/blockchain.py`의 `OpenTimestampsProvider`를 구현해야 합니다(calendar 서버에 제출하고 증명을 업그레이드하는 작업).
+- **OpenTimestamps(운영 권장)**: `BLOCKCHAIN_PROVIDER=opentimestamps`. 구현 완료(`backend/app/providers/ots.py`). 지갑·키·가스비가 필요 없습니다. 운영 서버에서 calendar 3곳과 `blockstream.info`로 나가는 HTTPS를 허용하고 `worker`를 항상 실행하세요. 결제 연동 전에는 `BLOCKCHAIN_PRICE=0`(무료 기록)으로 운영할 수 있습니다. 자세한 내용은 `TOSS_LAUNCH_AUDIT.md` 2장에 있습니다.

@@ -1,6 +1,6 @@
 # 최종 테스트 보고서
 
-- 실행: `make test` (`scripts/run_all_tests.sh`) — 2026-09-30 13:43 UTC, 개발 컨테이너
+- 실행: `make test` (`scripts/run_all_tests.sh`) — 2026-10-27 13:40 UTC, 개발 컨테이너
 - 근거 파일: `test-results/summary.json`
 - 실제로 실행한 결과만 적었습니다. 외부 계정이 필요한 운영 연동은 **테스트하지 않았고**, 해당 칸은 "Mock"으로 표시했습니다.
 
@@ -8,11 +8,11 @@
 
 | 구분 | PASS | FAIL |
 |---|---|---|
-| 백엔드 (pytest: 단위·통합·보안·EVM 스마트컨트랙트·증빙 문서) | 218 | 0 |
+| 백엔드 (pytest: 단위·통합·보안·EVM 스마트컨트랙트·증빙 문서) | 238 | 0 |
 | 프론트엔드 (vitest) | 20 | 0 |
-| E2E 기능 (Playwright, 모바일 iPhone 13 에뮬레이션) | 21 | 0 |
+| E2E 기능 (Playwright, 모바일 iPhone 13 에뮬레이션) | 22 | 0 |
 | E2E 화면 캡처 | 1 (24장) | 0 |
-| **합계** | **260** | **0** |
+| **합계** | **281** | **0** |
 
 추가로 확인한 것:
 
@@ -31,6 +31,10 @@
 | 표준근로계약서 · 일용근로자 표준근로계약서 (고용노동부 서식 항목, 근로시간 HH:MM 검증, 템플릿 안내) | PASS | `test_contract_data_matrix.py`(정상/빈/잘못/긴/한글/특수/숫자/날짜), `test_time_field_pattern`, E2E 일용근로자 |
 | 단시간근로자 표준근로계약서 (요일별 근로·휴게시간, 1주 소정근로시간, 가산임금률 50% 미만 거부) | PASS | `test_parttime_day_schedule_patterns`, `test_parttime_template_requires_overtime_premium_of_50_percent`, 데이터 매트릭스, E2E 단시간근로자 |
 | 특약·옵션 (계약서별 추천 특약 켜기/끄기, 직접 쓴 특약, 법정 한도, 초대 후 변경 시 새 버전·서명 무효화, 작성자만 변경) | PASS | `test_clauses.py`(8), `test_clauses_api.py`(4), E2E 특약·옵션 |
+| 디지털 지문 기록 — OpenTimestamps (제출 → 대기 → 업그레이드 → 비트코인 블록 대조 → 확인서 → .ots 내려받기, 위조 머클 루트 거부, SSRF 차단) | PASS (실제 .ots 형식의 가짜 calendar·탐색기. 외부 실서버는 이 환경에서 접속 불가로 미확인) | `test_ots.py`(5), `test_ots_anchoring.py`(3) |
+| 무료 기록 모드 (BLOCKCHAIN_PRICE=0, 계약당 1건) | PASS | `test_free_recording_mode_skips_payment` |
+| 회원 탈퇴 · 토스 로그인 연결 끊기 콜백 (Basic 인증) | PASS | `test_accounts.py`(4), E2E 회원 탈퇴 |
+| 운영 설정 가드 (개발용 로그인·결제·서명·체인이면 서버 시작 거부) | PASS | `test_production_guard.py`(8) |
 | 입력 형식 규칙 서버 허용목록 (임의 정규식·과도한 길이 제한 거부) | PASS | `test_client_validation_is_sanitized` |
 | PDF Upload (텍스트 PDF 추출 · 스캔 PDF OCR) | PASS | `test_pdf_upload.py`, E2E 시나리오 2·OCR |
 | Field Detection (자동 **추천** → 사용자 적용) | PASS | `test_units.py`(추천·적용·라벨·유형 추론), E2E |
@@ -99,7 +103,7 @@
 
 ## E2E
 
-PASS — 21/21 (로컬) · 15/15 + 1 SKIP (Docker 스택)
+PASS — 22/22 (로컬) · 15/15 + 1 SKIP (Docker 스택)
 
 ## Security
 
@@ -132,6 +136,8 @@ PASS — 24장 OK (`FINAL_REVIEW/VISUAL_REVIEW.md`)
 | 관리자 화면이 개발용 서명·로컬 체인을 "운영"으로 표시 | 개발용 판정 수정 + 테스트 |
 | 빈칸 입력 형식(정규식)을 클라이언트 값 그대로 사용 → ReDoS 가능성 | 서버가 아는 형식(전화·이메일·시각)만 허용, 길이 제한 상한 고정 + 테스트 |
 | 근로계약서 PDF의 사회보험 칸이 ☑ 기호만 보이고 보험 이름이 없음 | 기호 옆에 고용보험·산재보험·국민연금·건강보험 이름 표시 |
+| 운영 모드에서도 개발용(mock) 로그인·결제를 설정할 수 있었음 (누구나 다른 사람으로 로그인 가능) | 서버 시작 시 운영 설정 검사 + 테스트 |
+| Pillow·pypdf 신규 취약점 공개 | Pillow 13.0.0 · pypdf 6.21.2 업그레이드 |
 | 스캔 PDF OCR이 밑줄을 인식하지 못함 | "라벨:" 빈칸·"년 월 일" 추천 규칙 추가 |
 | 드래그가 하단 고정 버튼 위에서 끝나 빈칸 대신 저장이 눌림 | 테스트 좌표 수정 (UX는 스크롤로 해결) |
 

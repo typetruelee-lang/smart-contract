@@ -15,6 +15,7 @@
 - **필요한 정보:** 서비스 소개 한 줄("계약서는 내가 보관하고, 계약의 디지털 지문은 검증할 수 있게 합니다"), `FINAL_REVIEW/07-complete.png`, `09-blockchain.png` 스크린샷
 - **완료 확인:** 담당자의 답변을 받았다.
   - 블록체인 기능이 불가하다면 `.env`에서 `BLOCKCHAIN_ENABLED=false`로 바꿉니다. 나머지 기능은 그대로 출시할 수 있습니다.
+  - 문의할 때 "지갑·코인 없이 OpenTimestamps로 문서 지문만 비트코인에 무료 기록, 사용자는 코인을 보거나 다루지 않음"이라고 설명하세요 (`TOSS_LAUNCH_AUDIT.md` 2장).
 
 ## [ ] 2. 사업자 등록 · 앱인토스 개발자 계정 · 서비스 등록
 
@@ -42,6 +43,7 @@
 - **입력할 곳:** `PAYMENT_PROVIDER=production`, `TOSS_IAP_SKU_BLOCKCHAIN=<상품 ID>`, 가격은 `BLOCKCHAIN_PRICE`
 - **완료 확인:** 샌드박스에서 결제 → 기록 완료. `/admin`에서 payment가 `production`으로 표시됨
 - **참고:** 서버측 주문 검증 API 호출부는 콘솔 문서의 최신 명세를 확인한 뒤 연결해야 합니다(`KNOWN_ISSUES.md` #1). 명세를 받으면 개발자가 30분 안에 연결할 수 있는 작업입니다.
+- **건너뛰어도 됩니다:** 처음에는 `BLOCKCHAIN_PRICE=0`(무료 기록)으로 출시하면 이 단계 없이 시작할 수 있습니다. OpenTimestamps는 기록 비용이 0원입니다.
 
 ## [ ] 5. 본인확인 · 전자서명 사업자 계약 (토스인증 권장)
 
@@ -51,16 +53,25 @@
 - **입력할 곳:** `IDENTITY_PROVIDER=production`, `SIGNATURE_PROVIDER=production`, `TOSS_CERT_CLIENT_ID`, `TOSS_CERT_CLIENT_SECRET`
 - **완료 확인:** 실제 휴대폰으로 본인확인·서명 성공 → 전자계약 확인서의 서명 방식에 `production`이 표시됨
 
-## [ ] 6. 블록체인 운영 방식 결정 · 지갑 준비 (1번 답변 후)
+## [ ] 6. 디지털 지문 기록(블록체인) 운영 설정 — OpenTimestamps 권장 (지갑 불필요)
 
-- **무엇을:** 다음 중 하나를 고릅니다.
-  - (A) EVM 테스트넷/메인넷 (예: Polygon, Base) — 운영 지갑과 가스비용 코인이 필요합니다.
-  - (B) OpenTimestamps — 지갑이 필요 없고 무료지만, 연동 개발이 추가로 필요합니다.
-- **왜:** 실제 체인에 기록하려면 운영 지갑이 필요합니다. 개발 환경은 로컬 체인과 Mock입니다.
-- **어디서:** 지갑은 운영자 명의로 생성하고, **개인키는 Secret Manager에만 보관**합니다.
-- **입력할 곳:** `BLOCKCHAIN_PROVIDER=evm`, `BLOCKCHAIN_NETWORK`, `BLOCKCHAIN_RPC_URL`, `BLOCKCHAIN_PRIVATE_KEY`(Secret Manager), `BLOCKCHAIN_EXPLORER_TX_URL`
-  - 컨트랙트 배포는 개발자 도구로 1회 하고, 나온 주소를 `BLOCKCHAIN_CONTRACT_ADDRESS`에 넣습니다.
-- **완료 확인:** 테스트 계약 1건을 기록한 뒤 블록 탐색기에서 TX가 보인다.
+- **무엇을:** 운영 `.env`에 아래 값을 넣습니다. **지갑을 만들거나 코인을 살 필요가 없습니다.**
+  ```
+  BLOCKCHAIN_PROVIDER=opentimestamps
+  BLOCKCHAIN_PRICE=0          # 무료 기록으로 출시 (인앱결제 연동 후 유료 전환 가능)
+  ANCHOR_MODE=single
+  ```
+- **왜:** OpenTimestamps는 문서 지문을 비트코인에 무료로 기록합니다. 회사가 가상자산을 보유하지 않아 앱인토스 정책 위험이 가장 낮습니다. 자세한 비교는 `TOSS_LAUNCH_AUDIT.md` 2장에 있습니다.
+- **서버 네트워크:** 운영 서버에서 다음 주소로 나가는 HTTPS를 허용합니다.
+  - `a.pool.opentimestamps.org`, `b.pool.opentimestamps.org`, `a.pool.eternitywall.com`, `blockstream.info`
+- **완료 확인:** 테스트 계약 1건을 [무료로 기록하기] → 1~6시간 뒤 "기록 완료 · 비트코인 블록 #…"이 표시되고, `.ots` 파일과 PDF를 opentimestamps.org에 올리면 확인됩니다.
+- (선택) EVM 체인을 쓰려면 운영 지갑, 가스비 코인, 컨트랙트 배포가 필요합니다. 권장하지 않습니다.
+
+## [ ] 6-1. 토스 로그인 '연결 끊기' 콜백 등록
+
+- **무엇을:** 앱인토스 콘솔의 토스 로그인 설정에서 연결 끊기 콜백 URL `https://API도메인/api/auth/toss/unlink`와 Basic 인증 아이디·비밀번호를 등록합니다. 같은 값을 `TOSS_UNLINK_BASIC_AUTH=아이디:비밀번호`로 넣습니다(Secret Manager).
+- **왜:** 사용자가 토스에서 서비스 연결을 끊으면 우리 서버가 그 계정을 자동으로 탈퇴 처리합니다(개인정보 삭제).
+- **완료 확인:** 샌드박스에서 연결 끊기 → 서버 로그에 콜백 수신 → 다시 로그인하면 새 계정입니다.
 
 ## [ ] 7. 운영 서버 · 도메인 · 비밀값 저장소
 
