@@ -1,6 +1,6 @@
 # 최종 테스트 보고서
 
-- 실행: `make test` (`scripts/run_all_tests.sh`) — 2026-10-27 13:40 UTC, 개발 컨테이너
+- 실행: `make test` (`scripts/run_all_tests.sh`) — 2026-10-27 14:17 UTC, 개발 컨테이너
 - 근거 파일: `test-results/summary.json`
 - 실제로 실행한 결과만 적었습니다. 외부 계정이 필요한 운영 연동은 **테스트하지 않았고**, 해당 칸은 "Mock"으로 표시했습니다.
 
