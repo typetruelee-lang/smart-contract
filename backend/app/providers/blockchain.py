@@ -10,7 +10,7 @@
 구현:
   MockBlockchainProvider   : DB 원장. 비용 없음. dev_faults.blockchain_fail 로 N회 실패 주입.
   EvmBlockchainProvider    : Hardhat 로컬 / 테스트넷 / 메인넷 공용 (web3.py). DocumentRegistry.sol 사용.
-  OpenTimestampsProvider   : 운영 후보(비트코인 기반, 지갑 불필요) — 골격만 제공.
+  OpenTimestampsProvider   : 운영 권장(비트코인 기반, 지갑·코인 불필요) — app/providers/ots.py
 블록체인에는 문서 Hash·시각·버전 외의 어떤 정보도 기록하지 않는다.
 """
 from __future__ import annotations
@@ -265,17 +265,8 @@ class EvmBlockchainProvider(BlockchainProvider):
             return {"ok": False, "provider": self.name, "network": self.network, "error": type(e).__name__}
 
 
-class OpenTimestampsProvider(BlockchainProvider):  # pragma: no cover - 운영 후보 골격
-    name = "opentimestamps"
-    network = "bitcoin-ots"
-
-    def __init__(self, db: Session):
-        raise ProviderNotConfigured(
-            "OpenTimestamps provider 는 운영 후보로 설계만 되어 있습니다. 채택 시 calendar 서버 연동을 구현합니다 (DEPLOYMENT.md 참조)."
-        )
-
-    def register_document_hash(self, document_hash: str, version: int = 1) -> TxReceipt: ...
-    def register_root(self, root: str) -> TxReceipt: ...
-    def verify_document_hash(self, document_hash: str) -> OnchainRecord | None: ...
-    def get_transaction(self, tx_id: str) -> TxInfo | None: ...
-    def get_network_status(self) -> dict: ...
+def __getattr__(name):  # 하위 호환: OpenTimestampsProvider 는 app.providers.ots 에 구현
+    if name == "OpenTimestampsProvider":
+        from app.providers.ots import OpenTimestampsProvider
+        return OpenTimestampsProvider
+    raise AttributeError(name)

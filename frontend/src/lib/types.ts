@@ -71,6 +71,7 @@ export interface Anchor {
   merkle_root?: string | null;
   last_error?: string | null;
   explorer_url?: string | null;
+  proof_available?: boolean;
 }
 
 export interface VersionInfo {

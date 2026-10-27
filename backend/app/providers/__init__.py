@@ -115,7 +115,8 @@ _evm_cache: dict = {}
 
 
 def get_blockchain(db: Session):
-    from app.providers.blockchain import EvmBlockchainProvider, MockBlockchainProvider, OpenTimestampsProvider
+    from app.providers.blockchain import EvmBlockchainProvider, MockBlockchainProvider
+    from app.providers.ots import OpenTimestampsProvider
 
     s = get_settings()
     req = s.BLOCKCHAIN_PROVIDER
@@ -128,7 +129,9 @@ def get_blockchain(db: Session):
             _fallback("blockchain", req, e if isinstance(e, ProviderNotConfigured) else ProviderNotConfigured(str(e)))
     elif req == "opentimestamps":
         try:
-            return OpenTimestampsProvider(db)
+            p = OpenTimestampsProvider(db)
+            note("blockchain", req, req)
+            return p
         except ProviderNotConfigured as e:
             _fallback("blockchain", req, e)
     else:

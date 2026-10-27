@@ -415,6 +415,21 @@ def anchor_retry(cid: str, db: Session = Depends(get_db), user: User = Depends(c
     return {"anchor": svc.anchor_view(job)}
 
 
+@router.get("/contracts/{cid}/anchor/proof")
+def anchor_proof(cid: str, db: Session = Depends(get_db), user: User = Depends(current_user)):
+    """OpenTimestamps 표준 증명 파일(.ots). 원본 PDF 와 함께 opentimestamps.org 에서 우리 서버 없이 검증할 수 있다."""
+    c, _ = svc.get_contract_for(db, cid, user)
+    job = svc.latest_anchor(db, c)
+    if job is None or job.provider != "opentimestamps" or not job.anchored_value:
+        raise HTTPException(404, detail={"code": "NOT_FOUND", "message": "내려받을 기록 증명이 없어요."})
+    from app.providers.ots import OpenTimestampsProvider
+    data = OpenTimestampsProvider(db).proof_file(job.anchored_value)
+    if data is None:
+        raise HTTPException(404, detail={"code": "NOT_FOUND", "message": "내려받을 기록 증명이 없어요."})
+    return Response(content=data, media_type="application/octet-stream",
+                    headers={"Content-Disposition": f'attachment; filename="{c.contract_no}.pdf.ots"'})
+
+
 # ---------------- 공개 검증 ----------------
 
 @router.get("/verify/{vid}")

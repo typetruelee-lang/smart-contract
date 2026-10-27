@@ -157,7 +157,9 @@ def process_job(db: Session, job_id: str) -> AnchorJob:
             evidence.record(db, c.id, "BLOCKCHAIN_CONFIRMED", None, c.final_version_no, c.document_hash,
                             {"tx_id": receipt_tx, "network": bc.network, "block_number": info.block_number, "confirmations": info.confirmations})
         else:
-            job.next_attempt_at = _now() + timedelta(seconds=s.ANCHOR_RETRY_BASE_SECONDS)
+            # OTS 는 비트코인 블록 포함까지 보통 1~6시간 → 길게 기다렸다가 다시 확인
+            wait = getattr(bc, "poll_seconds", None) or s.ANCHOR_RETRY_BASE_SECONDS
+            job.next_attempt_at = _now() + timedelta(seconds=wait)
     except ProviderError as e:
         job.last_error = str(e)[:300]
         if job.attempts >= s.ANCHOR_MAX_ATTEMPTS:

@@ -75,7 +75,7 @@ export default function Complete() {
       const r = await api.post<{ payment_status: string; anchor_status: string; reason?: string }>(`/api/contracts/${id}/anchor/confirm`, { payment_id: p.payment_id, result, provider_payload: providerPayload });
       setPay(null);
       if (r.payment_status !== "PAID") toast(r.reason ?? "결제가 완료되지 않았어요. 기록하지 않았어요.", "error");
-      else if (r.anchor_status === "CONFIRMED") toast("디지털 지문을 블록체인에 기록했어요.");
+      else if (r.anchor_status === "CONFIRMED") toast("디지털 지문을 기록했어요.");
       else toast("결제는 완료됐어요. 기록이 조금 늦어지고 있어요. 자동으로 다시 시도할게요.");
       await load();
     } catch (e) {
@@ -147,8 +147,8 @@ export default function Complete() {
 
       {c.blockchain_enabled && (
         <section className="mt-8 border-t border-grey-100 pt-6" data-testid="anchor-section">
-          <h2 className="text-[19px] font-bold">🔐 계약을 블록체인에 기록</h2>
-          <p className="mt-2 text-[15px] leading-6 text-grey-600">계약서 원본은 저장하지 않고 디지털 지문만 기록해요. 나중에 누구나 계약서 파일이 바뀌지 않았는지 확인할 수 있어요.</p>
+          <h2 className="text-[19px] font-bold">🔐 디지털 지문 영구 기록</h2>
+          <p className="mt-2 text-[15px] leading-6 text-grey-600">계약서 원본이나 개인정보는 보내지 않고, 디지털 지문만 공개 블록체인에 남겨요. 나중에 누구나 계약서 파일이 바뀌지 않았는지 확인할 수 있어요. 코인이나 지갑은 필요 없어요.</p>
           <p data-testid="anchor-notice" className="mt-1 text-[13px] leading-5 text-grey-500">기록은 파일이 같다는 것만 확인해 줄 뿐, 계약의 효력이나 내용이 옳다는 것을 증명하지는 않아요. 결제 후 기록이 끝내 실패하면 이용약관의 환불 기준에 따라 처리해요.</p>
           {an.status === "NOT_REQUESTED" ? (
             <div className="mt-4">
@@ -162,14 +162,34 @@ export default function Complete() {
                 <Badge tone={an.status === "CONFIRMED" ? "green" : an.status === "FAILED" ? "red" : "orange"}>{ANCHOR_LABEL[an.status]}</Badge>
               </div>
               <Row label="결제">{c.payment.status === "PAID" ? "결제 완료" : c.payment.status}</Row>
-              {an.tx_id && <Row label="Blockchain TX" mono>{an.tx_id.slice(0, 18)}…</Row>}
-              {an.network && <Row label="네트워크">{an.network}</Row>}
+              {an.provider === "opentimestamps" ? (
+                <>
+                  <Row label="기록 위치">비트코인 (OpenTimestamps)</Row>
+                  {an.block_number && <Row label="블록">{an.explorer_url ? <a className="text-toss-blue underline" href={an.explorer_url} target="_blank" rel="noreferrer">#{an.block_number.toLocaleString()}</a> : `#${an.block_number}`}</Row>}
+                </>
+              ) : (
+                <>
+                  {an.tx_id && <Row label="기록 번호(TX)" mono>{an.tx_id.slice(0, 18)}…</Row>}
+                  {an.network && <Row label="네트워크">{an.network}</Row>}
+                </>
+              )}
               {an.confirmed_at && <Row label="기록 시각">{formatKst(an.confirmed_at)}</Row>}
-              {["PENDING", "RETRY", "SUBMITTED"].includes(an.status) && (
+              {an.provider === "opentimestamps" && an.status === "SUBMITTED" ? (
+                <p data-testid="anchor-waiting" className="mt-2 text-[14px] leading-5 text-grey-600">결제는 완료됐어요. 지문을 제출했고, 비트코인 블록에 포함되기를 기다리고 있어요. 보통 1~6시간 걸리고 끝나면 자동으로 완료돼요.</p>
+              ) : ["PENDING", "RETRY", "SUBMITTED"].includes(an.status) && (
                 <>
                   <p className="mt-2 text-[14px] text-grey-600">결제는 완료됐어요. 기록이 늦어지고 있어 자동으로 다시 시도하고 있어요. (시도 {an.attempts}회)</p>
                   <Button size="sm" variant="secondary" full={false} onClick={retry} loading={busy === "retry"} testid="anchor-retry">지금 다시 시도</Button>
                 </>
+              )}
+              {an.proof_available && (
+                <div className="mt-3">
+                  <Button size="sm" variant="secondary" full={false} testid="anchor-proof"
+                    onClick={() => downloadFile(`/api/contracts/${id}/anchor/proof`, `${c.contract_no}.pdf.ots`).catch(() => toast("증명 파일을 받지 못했어요.", "error"))}>
+                    기록 증명 파일(.ots) 받기
+                  </Button>
+                  <p className="mt-1.5 text-[12.5px] leading-5 text-grey-500">계약서 PDF와 이 파일을 opentimestamps.org 에 함께 올리면 저희 서비스 없이도 기록을 확인할 수 있어요.</p>
+                </div>
               )}
               {an.status === "FAILED" && <p className="mt-2 text-[14px] text-warn">기록에 실패했어요. 결제는 보호되며 고객센터에서 도와드릴게요.</p>}
             </Card>
@@ -185,7 +205,7 @@ export default function Complete() {
 
       <Sheet open={!!pay && pay.provider === "mock"} onClose={() => !busy && setPay(null)} title="결제하기">
         <Card className="p-4">
-          <Row label="상품">블록체인 기록 (디지털 지문)</Row>
+          <Row label="상품">디지털 지문 영구 기록</Row>
           <Row label="금액">{won(pay?.amount ?? 0)}</Row>
         </Card>
         <p className="mt-3 text-[13px] text-grey-500">개발 환경의 모의 결제예요. 실제 서비스에서는 토스 결제 화면이 열려요.</p>

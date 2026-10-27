@@ -72,6 +72,12 @@ class Settings(BaseSettings):
     BLOCKCHAIN_CONTRACT_ADDRESS: str = ""
     BLOCKCHAIN_EXPLORER_TX_URL: str = ""
     BLOCKCHAIN_CONFIRMATIONS: int = 1
+    # OpenTimestamps (운영 권장: 지갑·코인 불필요, 비트코인에 무료 기록)
+    OTS_CALENDARS: str = "https://a.pool.opentimestamps.org,https://b.pool.opentimestamps.org,https://a.pool.eternitywall.com"
+    OTS_POLL_SECONDS: int = Field(default=1800, ge=60)
+    OTS_HTTP_TIMEOUT: float = 10.0
+    BITCOIN_EXPLORER_API: str = "https://blockstream.info/api"
+    BITCOIN_EXPLORER_WEB: str = "https://blockstream.info"
     ANCHOR_MODE: Literal["single", "merkle"] = "single"
     ANCHOR_MAX_ATTEMPTS: int = 5
     ANCHOR_RETRY_BASE_SECONDS: int = 5

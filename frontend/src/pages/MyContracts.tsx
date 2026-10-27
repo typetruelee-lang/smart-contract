@@ -28,7 +28,7 @@ export default function MyContracts() {
               </div>
               <p className="mt-1 text-[13px] text-grey-500">
                 {c.counterparty ? `${c.counterparty}님` : "상대방 없음"} · {formatKst(c.completed_at ?? c.created_at)}
-                {c.anchor_status !== "NOT_REQUESTED" && ` · 블록체인 ${ANCHOR_LABEL[c.anchor_status]}`}
+                {c.anchor_status !== "NOT_REQUESTED" && ` · 지문 기록 ${ANCHOR_LABEL[c.anchor_status]}`}
               </p>
             </Card>
           ))}

@@ -476,12 +476,16 @@ def anchor_view(job: AnchorJob | None) -> dict:
     if job is None:
         return {"status": "NOT_REQUESTED"}
     from app.providers.blockchain import BlockchainProvider
+    from app.providers.ots import block_explorer_url
 
     return {
         "status": job.status, "tx_id": job.tx_id, "network": job.network, "provider": job.provider, "attempts": job.attempts,
         "confirmed_at": job.confirmed_at.isoformat() if job.confirmed_at else None, "block_number": job.block_number,
         "mode": job.mode, "merkle_root": job.anchored_value if job.mode == "merkle" else None, "merkle_proof": job.merkle_proof,
-        "last_error": job.last_error, "explorer_url": BlockchainProvider.explorer_url(BlockchainProvider, job.tx_id) if job.tx_id else None,  # type: ignore[arg-type]
+        "last_error": job.last_error,
+        "explorer_url": (block_explorer_url(job.block_number) if job.provider == "opentimestamps"
+                         else BlockchainProvider.explorer_url(BlockchainProvider, job.tx_id) if job.tx_id else None),  # type: ignore[arg-type]
+        "proof_available": job.provider == "opentimestamps" and job.status in ("SUBMITTED", "CONFIRMED"),
     }
 
 

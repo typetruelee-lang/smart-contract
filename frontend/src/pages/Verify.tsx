@@ -92,7 +92,7 @@ export default function Verify() {
           <Row label="계약 상태"><Badge tone="green">완료</Badge></Row>
           <Row label="완료 일시">{formatKst(info.completed_at)}</Row>
           <Row label="디지털 지문" mono>{info.document_hash_short}</Row>
-          <Row label="블록체인">{ANCHOR_LABEL[info.anchor.status] ?? info.anchor.status}</Row>
+          <Row label="지문 기록">{ANCHOR_LABEL[info.anchor.status] ?? info.anchor.status}</Row>
           {info.anchor.confirmed_at && <Row label="기록 일시">{formatKst(info.anchor.confirmed_at)}</Row>}
           {info.anchor.tx_id && <Row label="TX" mono>{info.anchor.tx_id.slice(0, 20)}…</Row>}
         </Card>
@@ -122,7 +122,7 @@ export default function Verify() {
             <Row label="올린 파일" mono>{shortHash(result.uploaded_hash)}</Row>
             {result.document_hash && <Row label="기록된 값" mono>{shortHash(result.document_hash)}</Row>}
             {result.match && result.verification_id && !vid && <Row label="검증번호">{result.verification_id}</Row>}
-            {result.onchain && <Row label="블록체인 확인">{result.onchain.recorded ? "✓ 기록 확인됨" : result.onchain.recorded === false ? "기록 없음" : "조회 실패"}</Row>}
+            {result.onchain && <Row label="공개 기록 대조">{result.onchain.recorded ? "✓ 기록 확인됨" : result.onchain.recorded === false ? "기록 없음" : "조회 실패"}</Row>}
           </div>
         </Card>
       )}

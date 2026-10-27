@@ -19,8 +19,8 @@ const LABEL: Record<string, string> = {
   CONTRACT_CREATED: "계약서 작성", CONTRACT_VIEWED: "계약서 열람", CONTRACT_UPDATED: "내용 수정", VERSION_CREATED: "새 버전 생성", INVITED: "상대방 초대",
   INVITE_ACCEPTED: "상대방 참여", IDENTITY_VERIFIED: "본인확인 완료", CONTRACT_REVIEWED: "최종 확인", SIGNATURE_STARTED: "서명 시작", SIGNATURE_COMPLETED: "서명 완료",
   SIGNATURE_INVALIDATED: "서명 무효화(내용 변경)", CONTRACT_COMPLETED: "계약 완료", CONTRACT_CANCELED: "계약 취소", PDF_GENERATED: "계약서 PDF 생성", HASH_CREATED: "디지털 지문 생성",
-  CERTIFICATE_GENERATED: "확인서 발급", PAYMENT_REQUESTED: "결제 요청", PAYMENT_SUCCEEDED: "결제 완료", PAYMENT_FAILED: "결제 실패", BLOCKCHAIN_SUBMITTED: "블록체인 전송",
-  BLOCKCHAIN_RETRY: "블록체인 재시도", BLOCKCHAIN_CONFIRMED: "블록체인 기록 확인", BLOCKCHAIN_FAILED: "블록체인 기록 실패", DOCUMENT_PURGED: "원문 삭제(보존기간 만료)",
+  CERTIFICATE_GENERATED: "확인서 발급", PAYMENT_REQUESTED: "결제 요청", PAYMENT_SUCCEEDED: "결제 완료", PAYMENT_FAILED: "결제 실패", BLOCKCHAIN_SUBMITTED: "지문 기록 제출",
+  BLOCKCHAIN_RETRY: "지문 기록 재시도", BLOCKCHAIN_CONFIRMED: "지문 기록 완료", BLOCKCHAIN_FAILED: "지문 기록 실패", DOCUMENT_PURGED: "원문 삭제(보존기간 만료)",
 };
 
 export default function Evidence() {

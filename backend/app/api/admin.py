@@ -151,6 +151,8 @@ def status(db: Session = Depends(get_db)):
             return False  # 로컬 Tesseract 는 운영에서도 사용 가능 (외부 OCR 은 선택)
         if v["active"] in ("mock", "local", "development"):
             return True
+        if kind == "blockchain" and v["active"] == "opentimestamps":
+            return False  # 공개 calendar + 비트코인: 운영용 (BLOCKCHAIN_NETWORK 값과 무관)
         # 로컬 개발 체인(Hardhat 등)은 운영 체인이 아니다
         return kind == "blockchain" and any(x in s.BLOCKCHAIN_NETWORK.lower() for x in ("local", "hardhat", "mock"))
 

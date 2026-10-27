@@ -10,14 +10,17 @@ python-multipart==0.0.32
 PyJWT==2.15.1
 cryptography==50.0.1
 redis==5.2.1
-pypdf==6.19.0
+pypdf==6.21.2
 pdfplumber==0.11.10
 pypdfium2==5.13.0
 pytesseract==0.3.13
-Pillow==12.3.0
+Pillow==13.0.0
 qrcode==8.0
 Jinja2==3.1.6
 PyYAML==6.0.2
 playwright==1.56.0
 web3==7.6.1
 httpx==0.28.1
+opentimestamps==0.4.5  # LGPL-3.0 (라이브러리로만 사용, 수정 없음)
+python-bitcoinlib==0.12.2  # LGPL-3.0, opentimestamps 의존성
+pycryptodomex==3.24.1
