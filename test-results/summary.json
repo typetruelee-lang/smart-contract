@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-09-30 13:43:13 UTC",
+  "generated_at": "2026-10-27 13:31:27 UTC",
   "suites": {
     "backend (pytest)": {
-      "passed": 218,
+      "passed": 229,
       "failed": 0,
       "skipped": 0
     },
@@ -13,7 +13,7 @@
     },
     "e2e-functional (playwright)": {
       "passed": 21,
-      "failed": 0,
+      "failed": 1,
       "skipped": 0
     },
     "e2e-visual (playwright)": {
@@ -22,8 +22,8 @@
       "skipped": 0
     }
   },
-  "passed": 260,
-  "failed": 0,
+  "passed": 271,
+  "failed": 1,
   "skipped": 0,
   "typecheck_ok": true,
   "build_ok": true,
@@ -50,7 +50,7 @@
     "ait_build_exit": "0",
     "web_build_exit": "0",
     "contract_compile_exit": "0",
-    "e2e_exit": "0",
+    "e2e_exit": "1",
     "bandit_exit": "0",
     "pip_audit_exit": "0",
     "npm_audit_exit": "0",

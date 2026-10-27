@@ -39,6 +39,7 @@ class User(Base):
     provider_user_key: Mapped[str] = mapped_column(String(128))
     display_name_masked: Mapped[str] = mapped_column(String(64))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)  # 회원 탈퇴
     __table_args__ = (UniqueConstraint("provider", "provider_user_key"),)
 
 

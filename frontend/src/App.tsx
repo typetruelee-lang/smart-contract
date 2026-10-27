@@ -17,6 +17,7 @@ const MyContracts = lazy(() => import("./pages/MyContracts"));
 const Verify = lazy(() => import("./pages/Verify"));
 const Admin = lazy(() => import("./pages/Admin"));
 const Evidence = lazy(() => import("./pages/Evidence"));
+const Account = lazy(() => import("./pages/Account"));
 const Terms = lazy(() => import("./pages/Legal").then((m) => ({ default: m.Terms })));
 const Privacy = lazy(() => import("./pages/Legal").then((m) => ({ default: m.Privacy })));
 
@@ -52,6 +53,7 @@ export default function App() {
               <Route path="/create/template" element={auth(<TemplatePick />)} />
               <Route path="/create/pdf" element={auth(<PdfEditor />)} />
               <Route path="/contracts" element={auth(<MyContracts />)} />
+              <Route path="/account" element={auth(<Account />)} />
               <Route path="/contracts/:id" element={auth(<ContractPage />)} />
               <Route path="/contracts/:id/edit" element={auth(<TextEditor />)} />
               <Route path="/contracts/:id/sign" element={auth(<SignFlow />)} />

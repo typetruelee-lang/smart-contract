@@ -252,6 +252,22 @@ test("특약·옵션: 추천 특약 켜기 + 법정 한도 검증 + 직접 쓴 �
   await expect(A.page.getByTestId("custom-clauses")).toHaveCount(0);
 });
 
+test("회원 탈퇴: 내 정보 → 안내 확인 → 탈퇴 → 로그아웃 상태", async ({ browser }) => {
+  const A = await newParty(browser);
+  // 다른 테스트와 겹치지 않는 전용 계정(park)으로 로그인 (개발용 로그인 API)
+  expect((await A.page.request.post("/api/auth/mock-login", { data: { test_user: "park" } })).ok()).toBeTruthy();
+  await A.page.goto("/");
+  await A.page.getByTestId("home-account").click();
+  await A.page.waitForURL(/\/account$/);
+  await A.page.getByTestId("withdraw-open").click();
+  await expect(A.page.getByTestId("withdraw-confirm")).toBeDisabled();
+  await A.page.getByTestId("withdraw-agree").check();
+  await A.page.getByTestId("withdraw-confirm").click();
+  await A.page.waitForURL((u) => u.pathname === "/");
+  await expect(A.page.getByRole("alert").first()).toContainText("탈퇴했어요");
+  await expect(A.page.getByTestId("home-account")).toHaveCount(0);
+});
+
 test("내용 변경 시 새 버전 + 기존 서명 무효화 안내", async ({ browser }) => {
   const A = await newParty(browser);
   const B = await newParty(browser);

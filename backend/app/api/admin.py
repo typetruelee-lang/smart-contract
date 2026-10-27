@@ -151,6 +151,8 @@ def status(db: Session = Depends(get_db)):
             return False  # 로컬 Tesseract 는 운영에서도 사용 가능 (외부 OCR 은 선택)
         if v["active"] in ("mock", "local", "development"):
             return True
+        if kind == "payment" and (not s.BLOCKCHAIN_ENABLED or s.BLOCKCHAIN_PRICE == 0):
+            return False  # 무료 기록 모드·기능 끔: 결제 provider 를 쓰지 않음
         if kind == "blockchain" and v["active"] == "opentimestamps":
             return False  # 공개 calendar + 비트코인: 운영용 (BLOCKCHAIN_NETWORK 값과 무관)
         # 로컬 개발 체인(Hardhat 등)은 운영 체인이 아니다

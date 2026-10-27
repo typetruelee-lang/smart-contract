@@ -76,3 +76,17 @@ def test_ots_certificate_shows_bitcoin_block_and_independent_verification(client
     with pdfplumber.open(io.BytesIO(cert)) as doc:
         txt = "".join((p.extract_text() or "") for p in doc.pages).replace("\n", "")
     assert "OpenTimestamps" in txt and f"#{HEIGHT}" in txt and "opentimestamps.org" in txt and "기록 완료" in txt
+
+
+def test_free_recording_mode_skips_payment(client_factory, ots_net, monkeypatch):
+    from app.core import config
+    monkeypatch.setenv("BLOCKCHAIN_PRICE", "0")
+    config.get_settings.cache_clear()
+    a, _, cid = complete_contract(client_factory)
+    r = a.post(f"/api/contracts/{cid}/anchor/checkout").json()
+    assert r["provider"] == "free" and r["amount"] == 0 and r["anchor_status"] == "SUBMITTED"
+    view = a.get(f"/api/contracts/{cid}").json()
+    assert view["payment"]["status"] == "PAID" and view["blockchain_price"] == 0
+    # 두 번 눌러도 기록 요청은 1건
+    again = a.post(f"/api/contracts/{cid}/anchor/checkout")
+    assert again.status_code == 409

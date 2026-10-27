@@ -53,7 +53,10 @@ export default function Complete() {
     setBusy("checkout");
     try {
       const r = await api.post<NonNullable<typeof pay>>(`/api/contracts/${id}/anchor/checkout`);
-      if (r.provider === "mock") {
+      if (r.provider === "free") {
+        await load(); // 무료 기록: 결제 없이 바로 기록 시작
+        toast("디지털 지문 기록을 시작했어요.");
+      } else if (r.provider === "mock") {
         setPay(r); // 개발용 모의 결제 시트
       } else {
         // 운영: 앱인토스 인앱결제 창 → 결과를 서버에서 검증
@@ -153,7 +156,7 @@ export default function Complete() {
           {an.status === "NOT_REQUESTED" ? (
             <div className="mt-4">
               {c.payment.status === "FAILED" || c.payment.status === "CANCELED" ? <p className="mb-2 text-[14px] text-warn" data-testid="payment-failed">결제가 완료되지 않아 기록하지 않았어요. 다시 시도할 수 있어요.</p> : null}
-              <Button onClick={checkout} loading={busy === "checkout"} testid="anchor-buy">{won(c.blockchain_price)}에 기록하기</Button>
+              <Button onClick={checkout} loading={busy === "checkout"} testid="anchor-buy">{c.blockchain_price === 0 ? "무료로 기록하기" : `${won(c.blockchain_price)}에 기록하기`}</Button>
             </div>
           ) : (
             <Card className="mt-4 p-4" testid="anchor-status">

@@ -53,6 +53,8 @@ def checkout(db: Session, c: Contract, user: User) -> dict:
         # FAILED/CANCELED → 새 시도: 이전 결제 기록은 보존하고 키를 회전
         existing.idempotency_key = f"{key}:{existing.id}"
         db.flush()
+    if s.BLOCKCHAIN_PRICE == 0:
+        return _free_record(db, c, user, key)
     prov = get_payment()
     p = Payment(contract_id=c.id, user_id=user.id, provider=prov.name, amount=s.BLOCKCHAIN_PRICE, idempotency_key=key)
     db.add(p)
@@ -67,6 +69,28 @@ def checkout(db: Session, c: Contract, user: User) -> dict:
                     {"payment_id": p.id, "amount": p.amount, "provider": prov.name})
     db.commit()
     return {"payment_id": p.id, "order_id": cs.order_id, "amount": p.amount, "provider": prov.name, "client_params": cs.client_params}
+
+
+def _free_record(db: Session, c: Contract, user: User, key: str) -> dict:
+    """무료 기록 모드(BLOCKCHAIN_PRICE=0): 결제창 없이 바로 기록.
+    OpenTimestamps 는 운영 비용이 없으므로 출시 초기에 인앱결제 연동 없이 이 모드로 시작할 수 있다.
+    결제 기록(0원, provider=free)은 남겨 '결제 → 기록' 흐름과 멱등성(계약당 1건)을 그대로 유지한다."""
+    p = Payment(contract_id=c.id, user_id=user.id, provider="free", amount=0, idempotency_key=key)
+    db.add(p)
+    try:
+        db.flush()
+    except IntegrityError as e:
+        db.rollback()
+        raise ContractError(409, "DUPLICATE", "이미 기록을 요청했어요.") from e
+    p.provider_order_id = "free_" + p.id
+    states.transition("payment", p, "PAID")
+    evidence.record(db, c.id, "PAYMENT_SUCCEEDED", user.id, c.final_version_no, c.document_hash, {"payment_id": p.id, "amount": 0, "provider": "free"})
+    job = _create_job(db, c, p)
+    db.commit()
+    process_job(db, job.id)
+    db.refresh(job)
+    return {"payment_id": p.id, "order_id": p.provider_order_id, "amount": 0, "provider": "free", "client_params": {},
+            "payment_status": "PAID", "anchor_status": job.status}
 
 
 def _fault(db: Session, key: str) -> bool:

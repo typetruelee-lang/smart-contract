@@ -16,6 +16,7 @@ interface AuthState {
   sessionExpired: boolean;
   login: (testUser?: string) => Promise<void>;
   logout: () => Promise<void>;
+  withdraw: () => Promise<{ canceled_contracts: number }>;
   refresh: () => Promise<void>;
 }
 
@@ -82,8 +83,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, []);
 
+  const withdraw = useCallback(async () => {
+    const r = await api.del<{ canceled_contracts: number }>("/api/auth/me");
+    tokenStore.set(null);
+    setUser(null);
+    return r;
+  }, []);
+
   void loc;
-  return <Ctx.Provider value={{ user, loading, sessionExpired, login, logout, refresh }}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={{ user, loading, sessionExpired, login, logout, withdraw, refresh }}>{children}</Ctx.Provider>;
 }
 
 export function RequireAuth({ children }: { children: ReactNode }) {

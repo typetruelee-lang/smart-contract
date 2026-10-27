@@ -53,6 +53,8 @@ class Settings(BaseSettings):
 
     PAYMENT_PROVIDER: str = "mock"
     TOSS_IAP_SKU_BLOCKCHAIN: str = ""
+    # 토스 로그인 '연결 끊기' 콜백 Basic 인증 (콘솔에 등록한 값, "아이디:비밀번호"). 비어 있으면 콜백 비활성.
+    TOSS_UNLINK_BASIC_AUTH: str = ""
 
     SIGNATURE_PROVIDER: str = "mock"
     IDENTITY_PROVIDER: str = "mock"
@@ -112,6 +114,23 @@ class Settings(BaseSettings):
     @property
     def is_production(self) -> bool:
         return self.APP_ENV == "production"
+
+    def production_violations(self) -> list[str]:
+        """운영(APP_ENV=production)에서 절대 허용하면 안 되는 설정. 하나라도 있으면 서버가 시작되지 않는다.
+        (mock 로그인 = 아무 계정으로나 로그인, mock 결제 = 결제 없이 기록, mock 서명 = 법적 효력 없음)"""
+        v = []
+        if self.TOSS_PROVIDER != "production":
+            v.append("TOSS_PROVIDER=production 이어야 해요 (개발용 로그인은 누구나 다른 사람으로 로그인할 수 있어요).")
+        if self.IDENTITY_PROVIDER != "production" or self.SIGNATURE_PROVIDER != "production":
+            v.append("IDENTITY_PROVIDER / SIGNATURE_PROVIDER=production 이어야 해요 (모의 서명은 법적 효력이 없어요).")
+        if self.BLOCKCHAIN_ENABLED:
+            if self.BLOCKCHAIN_PROVIDER not in ("opentimestamps", "evm"):
+                v.append("BLOCKCHAIN_PROVIDER 는 opentimestamps(권장) 또는 evm 이어야 해요. 기능을 끄려면 BLOCKCHAIN_ENABLED=false.")
+            if self.BLOCKCHAIN_PRICE > 0 and self.PAYMENT_PROVIDER != "production":
+                v.append("유료 기록(BLOCKCHAIN_PRICE>0)에는 PAYMENT_PROVIDER=production 이 필요해요. 결제 연동 전이면 BLOCKCHAIN_PRICE=0(무료 기록).")
+        if not self.COOKIE_SECURE:
+            v.append("COOKIE_SECURE=true 여야 해요.")
+        return v
 
     @property
     def cors_origins(self) -> list[str]:

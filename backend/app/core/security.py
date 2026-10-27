@@ -18,7 +18,7 @@ CSRF_COOKIE = "kz_csrf"
 CSRF_HEADER = "X-CSRF-Token"
 UNSAFE_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
 # 로그인 전 호출되는 엔드포인트 (CSRF 토큰이 아직 없음)
-CSRF_EXEMPT_PREFIXES = ("/api/auth/mock-login", "/api/auth/toss/login", "/api/verify/")
+CSRF_EXEMPT_PREFIXES = ("/api/auth/mock-login", "/api/auth/toss/login", "/api/auth/toss/unlink", "/api/verify/")
 
 
 def _secret() -> str:
@@ -78,7 +78,7 @@ def current_user(request: Request, db: Session = Depends(get_db)) -> User:
     if not token:
         raise HTTPException(401, detail={"code": "UNAUTHENTICATED", "message": "로그인이 필요해요."})
     user = db.get(User, decode_session(token))
-    if user is None:
+    if user is None or user.deleted_at is not None:  # 탈퇴한 계정의 남은 토큰은 즉시 무효
         raise HTTPException(401, detail={"code": "UNAUTHENTICATED", "message": "로그인이 필요해요."})
     return user
 
@@ -88,7 +88,8 @@ def optional_user(request: Request, db: Session = Depends(get_db)) -> User | Non
     if not token:
         return None
     try:
-        return db.get(User, decode_session(token))
+        u = db.get(User, decode_session(token))
+        return u if (u is not None and u.deleted_at is None) else None
     except HTTPException:
         return None
 

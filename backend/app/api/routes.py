@@ -86,6 +86,53 @@ def logout(response: Response):
     return {"ok": True}
 
 
+@router.delete("/auth/me")
+def delete_me(response: Response, db: Session = Depends(get_db), user: User = Depends(current_user)):
+    """회원 탈퇴: 진행 중인 계약은 취소·원문 삭제, 로그인 식별자 삭제. 완료된 계약의 지문·진행 기록은 상대방 보호를 위해 유지."""
+    from app.services import accounts
+    r = accounts.withdraw(db, user, "user")
+    clear_session(response)
+    return {"ok": True, **r}
+
+
+def _unlink_authorized(request: Request) -> bool:
+    import base64
+    import secrets as _secrets
+    expected = get_settings().TOSS_UNLINK_BASIC_AUTH
+    got = request.headers.get("Authorization", "")
+    if not expected or not got.startswith("Basic "):
+        return False
+    try:
+        decoded = base64.b64decode(got[6:], validate=True).decode()
+    except (ValueError, UnicodeDecodeError):
+        return False
+    return _secrets.compare_digest(decoded.encode(), expected.encode())
+
+
+@router.api_route("/auth/toss/unlink", methods=["GET", "POST"])
+async def toss_unlink_callback(request: Request, db: Session = Depends(get_db)):
+    """토스 로그인 '연결 끊기' 콜백 (토스 서버 → 우리 서버, Basic 인증).
+    사용자가 토스에서 연결을 끊거나 약관 동의를 철회·토스를 탈퇴하면 호출된다 → 해당 회원을 탈퇴 처리."""
+    if not _unlink_authorized(request):
+        raise HTTPException(401, detail={"code": "UNAUTHORIZED", "message": "인증 실패"})
+    data: dict = dict(request.query_params)
+    if request.method == "POST":
+        try:
+            body = await request.json()
+            if isinstance(body, dict):
+                data.update(body)
+        except ValueError:
+            form = await request.form()
+            data.update({k: str(v) for k, v in form.items()})
+    user_key = str(data.get("userKey") or data.get("user_key") or "").strip()
+    referrer = str(data.get("referrer") or "UNLINK")[:32]
+    if not user_key or len(user_key) > 128:
+        raise HTTPException(422, detail={"code": "INVALID", "message": "userKey 가 없어요."})
+    from app.services import accounts
+    found = accounts.withdraw_by_toss_key(db, user_key, f"toss:{referrer}")
+    return {"ok": True, "found": found}
+
+
 # ---------------- 템플릿 / 빈칸 추천 ----------------
 
 @router.get("/templates")

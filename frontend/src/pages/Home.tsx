@@ -29,7 +29,7 @@ export default function Home() {
   const todo = (mine ?? []).filter((c) => c.needs_my_action);
 
   return (
-    <Page back={false} title="" right={user ? <span className="pr-3 text-[14px] text-grey-600">{user.name}님</span> : null}>
+    <Page back={false} title="" right={user ? <button data-testid="home-account" onClick={() => nav("/account")} className="mr-2 rounded-xl px-2 py-1 text-[14px] text-grey-600 active:bg-grey-100">{user.name}님 ›</button> : null}>
       <div className="mt-4">
         <p className="text-[15px] font-semibold text-toss-blue">계약하자</p>
         <h1 className="mt-2 text-[28px] leading-[38px] font-bold">

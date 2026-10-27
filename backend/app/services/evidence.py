@@ -36,7 +36,7 @@ ALLOWED_META_KEYS = {
     "role", "provider", "reason", "version_from", "version_to", "changed_fields", "kind", "sha256", "size",
     "payment_id", "amount", "status", "tx_id", "network", "block_number", "attempt", "error", "mode",
     "invalidated_parties", "field_count", "source", "confirmations", "verification_id", "idempotency_key",
-    "anchored_value", "purged_items", "policy", "consent_version", "issue_no",
+    "anchored_value", "purged_items", "policy", "consent_version", "issue_no", "trigger",
 }
 
 
