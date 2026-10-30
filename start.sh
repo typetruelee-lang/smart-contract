@@ -4,6 +4,7 @@
 #   ./start.sh          Docker 로 전체 실행 (권장)  → http://localhost:5173
 #   ./start.sh local    Docker 없이 이 컴퓨터에서 직접 실행 (PostgreSQL·Redis·Python3.11·Node22 필요)
 #   ./start.sh stop     실행 중인 것을 모두 종료
+#   ./start.sh staging  외부 휴대폰으로 테스트할 임시 https 서버 (STAGING.md)
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 cd "$ROOT"
@@ -67,6 +68,9 @@ case "$MODE" in
     command -v docker >/dev/null && docker compose down >/dev/null 2>&1 || true
     echo "종료했어요."
     ;;
+  staging) exec "$ROOT/deploy/staging/run.sh" up ;;
+  staging-stop) exec "$ROOT/deploy/staging/run.sh" stop ;;
+  staging-reset) exec "$ROOT/deploy/staging/run.sh" reset ;;
   *)
-    echo "사용법: ./start.sh [docker|local|stop]"; exit 1 ;;
+    echo "사용법: ./start.sh [docker|local|stop|staging|staging-stop|staging-reset]"; exit 1 ;;
 esac

@@ -20,7 +20,9 @@ ________________________
 `;
 
 export async function newParty(browser: Browser): Promise<{ ctx: BrowserContext; page: Page }> {
-  const ctx = await browser.newContext({ ...devices["iPhone 13"], locale: "ko-KR", timezoneId: "Asia/Seoul", acceptDownloads: true, baseURL: process.env.E2E_BASE_URL ?? "http://localhost:5180" });
+  // 외부 테스트 서버(STAGING.md)는 사이트 비밀번호가 있다: E2E_HTTP_USER / E2E_HTTP_PASSWORD
+  const httpCredentials = process.env.E2E_HTTP_PASSWORD ? { username: process.env.E2E_HTTP_USER ?? "tester", password: process.env.E2E_HTTP_PASSWORD } : undefined;
+  const ctx = await browser.newContext({ ...devices["iPhone 13"], locale: "ko-KR", timezoneId: "Asia/Seoul", acceptDownloads: true, baseURL: process.env.E2E_BASE_URL ?? "http://localhost:5180", httpCredentials });
   const page = await ctx.newPage();
   return { ctx, page };
 }

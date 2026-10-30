@@ -18,3 +18,4 @@ htmlcov/
 contracts/cache/
 *.log
 .run/
+.htpasswd
