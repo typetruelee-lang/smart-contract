@@ -71,6 +71,7 @@ case "$MODE" in
   staging) exec "$ROOT/deploy/staging/run.sh" up ;;
   staging-stop) exec "$ROOT/deploy/staging/run.sh" stop ;;
   staging-reset) exec "$ROOT/deploy/staging/run.sh" reset ;;
+  staging-logs) exec "$ROOT/deploy/staging/run.sh" logs ;;
   *)
-    echo "사용법: ./start.sh [docker|local|stop|staging|staging-stop|staging-reset]"; exit 1 ;;
+    echo "사용법: ./start.sh [docker|local|stop|staging|staging-stop|staging-reset|staging-logs]"; exit 1 ;;
 esac

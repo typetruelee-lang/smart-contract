@@ -8,7 +8,7 @@ x-backend-env: &backend-env
   APP_ENV: development
   DATABASE_URL: postgresql+psycopg://contract:contract@db:5432/contract
   REDIS_URL: redis://redis:6379/0
-  PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:?run ./start.sh staging}
+  PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-}  # run.sh 가 공개 주소를 .env 에 적는다
   CORS_ORIGINS: ${PUBLIC_BASE_URL}
   COOKIE_SECURE: "true"
   TOSS_PROVIDER: mock

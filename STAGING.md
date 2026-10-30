@@ -26,6 +26,7 @@ git checkout claude/loving-clarke-wdc1k2
 
 - 비밀번호는 `deploy/staging/.env`에 저장됩니다. Git에는 올라가지 않습니다.
 - 다시 `./start.sh staging`을 실행하면 같은 주소가 유지됩니다. 코드를 고친 뒤 반영할 때도 이 명령을 씁니다.
+- 로그 보기: `./start.sh staging-logs`
 - 끄기: `./start.sh staging-stop`. 테스트 데이터까지 지우려면 `./start.sh staging-reset`을 씁니다. 끈 뒤 다시 켜면 **주소가 바뀝니다.**
 
 ### 내 도메인을 쓰고 싶을 때 (주소 고정)

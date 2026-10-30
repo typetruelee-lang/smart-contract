@@ -4,6 +4,7 @@
 #   ./start.sh staging          시작 (또는 다시 시작) → 임시 https 주소와 테스터 비밀번호 출력
 #   ./start.sh staging-stop     종료 (테스트 데이터는 남는다)
 #   ./start.sh staging-reset    종료 + 테스트 데이터 삭제
+#   ./start.sh staging-logs     서버 로그 보기
 #
 # 선택 환경 변수
 #   STAGING_PUBLIC_URL=https://test.example.com   자기 도메인을 쓸 때 (터널을 띄우지 않음, 127.0.0.1:5180 으로 프록시)
@@ -32,6 +33,16 @@ PY
   echo "✓ 테스터 비밀번호와 서버 비밀값을 deploy/staging/.env 에 만들었어요 (Git 에 올라가지 않아요)"
 }
 
+# .env 의 KEY=값 을 바꾸거나 추가한다 (compose 가 .env 를 읽으므로 logs 같은 다른 명령도 같은 주소를 쓴다)
+set_env() {
+  python3 -c '
+import sys
+k, v = sys.argv[1], sys.argv[2]
+lines = [l for l in open(".env").read().splitlines() if not l.startswith(k + "=")]
+open(".env", "w").write("\n".join(lines + [k + "=" + v]) + "\n")
+' "$1" "$2"
+}
+
 tunnel_url() {
   "${COMPOSE[@]}" --profile tunnel logs tunnel 2>/dev/null | grep -oE 'https://[a-z0-9-]+\.trycloudflare\.com' | tail -1
 }
@@ -50,7 +61,8 @@ case "$ACTION" in
       for _ in $(seq 1 60); do URL="$(tunnel_url)"; [ -n "$URL" ] && break; sleep 2; done
       [ -n "$URL" ] || { echo "⚠ 터널 주소를 받지 못했어요. '${COMPOSE[*]} --profile tunnel logs tunnel' 로 확인해 주세요."; exit 1; }
     fi
-    export PUBLIC_BASE_URL="$URL"
+    set_env PUBLIC_BASE_URL "$URL"
+    unset PUBLIC_BASE_URL
     "${COMPOSE[@]}" up -d --build db redis backend worker frontend
     echo "⏳ 서비스가 준비될 때까지 기다리는 중..."
     ok=""
@@ -69,7 +81,12 @@ case "$ACTION" in
     echo
     "${COMPOSE[@]}" exec -T backend python3 -c "import qrcode,sys; q=qrcode.QRCode(border=1); q.add_data(sys.argv[1]); q.print_ascii(invert=True)" "$URL" 2>/dev/null || true
     echo "휴대폰 카메라로 QR 을 찍거나 주소를 열고, 아이디·비밀번호를 넣으면 돼요."
-    [ -z "${STAGING_PUBLIC_URL:-}" ] && echo "※ 터널을 다시 만들면 주소가 바뀌어요. 다시 실행해도 주소는 유지돼요 (staging-stop 후 시작하면 새 주소)."
+    if [ -z "${STAGING_PUBLIC_URL:-}" ]; then
+      echo "※ 다시 실행해도 주소는 유지돼요. staging-stop 후 다시 시작하면 새 주소가 나와요."
+    fi
+    ;;
+  logs)
+    "${COMPOSE[@]}" --profile tunnel logs --tail 200 -f
     ;;
   stop)
     "${COMPOSE[@]}" --profile tunnel down
@@ -80,5 +97,5 @@ case "$ACTION" in
     echo "종료하고 테스트 데이터를 지웠어요."
     ;;
   *)
-    echo "사용법: ./start.sh staging | staging-stop | staging-reset"; exit 1 ;;
+    echo "사용법: ./start.sh staging | staging-stop | staging-reset | staging-logs"; exit 1 ;;
 esac
